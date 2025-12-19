@@ -1,115 +1,115 @@
-![Banner Principal](social-preview.png)
+![Main Banner](social-preview.png)
 
-# VoX - Overlay Pro: Guía de Usuario Completa -_- /
-**Basado en el código de shinkonet, adaptado y mejorado para Wplace.**
+# VoX - Overlay Pro: Complete User Guide -_- /
+**Based on shinkonet code, adapted and improved for Wplace.**
 **Based on shinkonet’s code, adapted and enhanced for Wplace.**
 
-¡Bienvenido a **VoX - Overlay Pro v5.0.1**!
-Esta guía te ayudará a dominar todas las herramientas que el script pone a tu disposición. Hemos actualizado el motor para que sea más inteligente, rápido y fácil de usar.
+Welcome to **VoX - Overlay Pro v5.0.1**!
+This guide will help you master all the tools that the script makes available to you. We've updated the engine to make it smarter, faster and easier to use.
 
 ---
 
-## **1. Instalación**
+## **1. Installation**
 
-Para usar el script, primero necesitas una extensión de navegador llamada **Tampermonkey**.
+To use the script, you first need a browser extension called **Tampermonkey**.
 
-### Navegadores Soportados
+### Supported Browsers
 
-| Plataforma | Navegadores Recomendados |
+| Platform | Recommended Browsers |
 | :--- | :--- |
 | **PC / Mac** | Chrome, Firefox, Brave, Edge, Opera GX |
-| **Móvil (Android/iOS)** | **Microsoft Edge (Recomendado)**, Kiwi Browser |
+| **Mobile (Android/iOS)** | **Microsoft Edge (Recommended)**, Kiwi Browser |
 
-1. **Instala Tampermonkey:**
+1. **Install Tampermonkey:**
 
-   - [Tampermonkey para Chrome/Brave/Edge](https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo)
-   - [Tampermonkey para Firefox](https://addons.mozilla.org/es/firefox/addon/tampermonkey/)
+   - [Tampermonkey for Chrome/Brave/Edge](https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo)
+   - [Tampermonkey for Firefox](https://addons.mozilla.org/es/firefox/addon/tampermonkey/)
 
-   **📱 Nota para Móviles:** Si usas Edge en el móvil, puedes instalar la extensión directamente desde el menú "Extensiones" del navegador.
+   **📱 Mobile Note:** If you use Edge on mobile, you can install the extension directly from the browser's "Extensions" menu.
 
-2. **Instala el Script:**
-   El script está configurado para actualizarse automáticamente.
+2. **Install the Script:**
+   The script is set to update automatically.
    
-   [**⬇️ Haz clic aquí para instalar el Script (v5.0.1)**](https://raw.githubusercontent.com/SrCratier/Wplace_VoX-Overlay-Pro/main/WplacePro-VoX.user.js)
+   [**⬇️ Click here to install the Script (v5.0.1)**](https://raw.githubusercontent.com/SrCratier/Wplace_VoX-Overlay-Pro/main/WplacePro-VoX.user.js)
 
-   Tampermonkey se abrirá automáticamente y te pedirá confirmación. Dale a "Instalar".
-
----
-
-## **2. Tu Primer Overlay: Pasos Esenciales**
-
-Sigue estos pasos para colocar tu diseño sobre el lienzo con la mejor calidad de color posible.
-
-**Paso 1: Crear y Configurar**
-1.  Abre el panel de VoX en Wplace.
-2.  Ve a la pestaña **Overlays** y haz clic en **+ Add**.
-3.  Ve a la pestaña **Editor**.
-
-**Paso 2: Elegir el Modo de Color (¡NUEVO!)**
-Antes de cargar tu imagen, selecciona el **Modo** que mejor se adapte a tu diseño en el menú desplegable:
-*   **🌿 Natural:** (Por defecto) Ideal para fotografías, memes y degradados suaves.
-*   **⚡ Vibrante:** Perfecto para logotipos, textos y colores neón brillantes.
-*   **💀 Intenso (Anime):** Un modo matemático pesado que prioriza el tono exacto (HSV). Úsalo para Pixel Art complejo o Anime. (🚨Precaución : Este modo de renderizado es MUY PESADO y podría arruinar tu progreso!)
-
-**Paso 3: Cargar la Imagen**
-*   **Desde URL:** Pega el enlace directo y clic en **Cargar**.
-*   **Archivo Local:** Clic en el cuadro punteado para subirla desde tu dispositivo.
-    *(El script procesará los colores automáticamente para eliminar errores).*
-
-**Paso 4: Anclar al Lienzo**
-1.  Haz clic en el botón **Set Position: OFF** (cambiará a **ON**).
-2.  Haz clic en el lienzo del juego, exactamente en el píxel donde quieres que empiece la esquina superior izquierda (0,0) de tu imagen.
-3.  ¡Listo! La imagen se fijará.
+   Tampermonkey will open automatically and ask you for confirmation. Hit "Install".
 
 ---
 
-![Foto del renderizado](EJEMPLOS.png)
-## **3. Panel Principal y Modos de Visualización**
+## **2. Your First Overlay: Essential Steps**
 
-- **Overlay: ON/OFF** → Muestra u oculta todos tus diseños.
-- **Mode: Minify** → Cambia la visualización del Overlay:
-  - *Minify (Recomendado):* Muestra puntos pequeños sobre el lienzo (patrón) para ver debajo.
-  - *Behind/Above:* Muestra la imagen completa detrás o delante del lienzo.
-  - *Original:* Oculta el overlay para ver el mapa real.
-- **Show Errors: ON/OFF** → Marca en rojo brillante los píxeles que no coinciden con tu diseño.
+Follow these steps to place your design on the canvas with the best possible color quality.
 
-> **💡 Consejo de Rendimiento:** Ya no existe el botón de "Recargar". Si cambias la opacidad, posición o filtros, el script te avisará. Solo tienes que **mover un poco el mapa** o pintar un píxel para ver los cambios.
+**Step 1: Create and Configure**
+1. Open the VoX panel in Wplace.
+2. Go to the **Overlays** tab and click **+ Add**.
+3. Go to the **Editor** tab.
 
----
+**Step 2: Choose Color Mode (NEW!)**
+Before uploading your image, select the **Mode** that best suits your design from the drop-down menu:
+* **🌿 Natural:** (Default) Ideal for photographs, memes and soft gradients.
+* **⚡ Vibrant:** Perfect for logos, text and bright neon colors.
+* **💀 Heavy (Anime):** A heavy math mode that prioritizes exact pitch (HSV). Use it for complex Pixel Art or Anime. (🚨Caution: This rendering mode is VERY HEAVY and could ruin your progress!)
 
-## **4. Funciones Avanzadas por Pestaña**
+**Step 3: Upload the Image**
+* **From URL:** Paste the direct link and click **Upload**.
+* **Local File:** Click on the dotted box to upload it from your device.
+    *(The script will process the colors automatically to eliminate errors.)*
 
-### **Pestaña Overlays**
-*   **Gestión Individual:** Ahora, cada Overlay guarda su propia configuración de filtros de colores. Puedes tener varios activos con configuraciones diferentes.
-
-### **Pestaña Editor**
-*   **Opacidad:** Controla la transparencia del Overlay.
-*   **Ajuste Fino (Nudge):** Usa las flechas para mover la imagen píxel por píxel si la posición inicial no fue precisa.
-*   **Capacidad:** ¡Soporte para imágenes de hasta **3000x3000px**!
-
-### **Pestaña Herramientas**
-*   **Copiar Lienzo:** 
-    1. Fija el **Punto A**.
-    2. Fija el **Punto B**.
-    3. Clic en **Detectar y Descargar** para obtener una copia exacta de esa área del lienzo.
-
-*   **Mostrar Progreso del Overlay:** Abre un panel flotante para el seguimiento en tiempo real.
-    *   **Lista de Colores:** Muestra cuántos píxeles faltan de cada color.
-    *   **Filtros (⚙️):** Puedes ocultar colores terminados o filtrar la lista para delegar tareas.
-    *   **Optimización:** El panel ahora carga de forma instantánea sin congelar el navegador.
+**Step 4: Pin to Canvas**
+1. Click the **Set Position: OFF** button (it will change to **ON**).
+2. Click on the game canvas, exactly on the pixel where you want the top left corner (0,0) of your image to start.
+3. Ready! The image will be fixed.
 
 ---
 
-## **5. Soporte y Agradecimientos**
+![Rendering photo](EXAMPLES.png)
+## **3. Main Panel and Display Modes**
 
-En la cabecera del panel encontrarás el botón de **Ajustes (⚙️)**:
-- **Tema:** Cambia entre modo Claro y Oscuro.
-- **Transparencia:** Ajusta la opacidad del panel.
+- **Overlay: ON/OFF** → Show or hide all your designs.
+- **Mode: Minify** → Change the Overlay display:
+  - *Minify (Recommended):* Displays small dots on the canvas (pattern) to see below.
+  - *Behind/Above:* Displays the entire image behind or in front of the canvas.
+  - *Original:* Hide the overlay to see the real map.
+- **Show Errors: ON/OFF** → Mark pixels that do not match your design in bright red.
 
-**❤️ Apoya el Proyecto**
-Este script es gratuito y se mantiene gracias a la comunidad. Si te ha sido útil para defender tu arte, considera apoyar el desarrollo con una donación (encontrarás la opción en los menús de ajustes).
+> **💡 Performance Tip:** There is no longer a "Reload" button. If you change the opacity, position or filters, the script will warn you. You just have to **move the map a little** or paint a pixel to see the changes.
 
 ---
 
-¡Disfruta creando en **wplace.live** con VoX Overlay Pro! 🚀
-Sinceramente no tenía intención de terminarlo, pero tuve un golpe de creatividad y aquí tienen. (no creo que publique más actualizaciones) a no ser que sean para actualizar compatibilidad.
+## **4. Advanced Features per Tab**
+
+### **Overlays Tab**
+* **Individual Management:** Now, each Overlay saves its own color filter settings. You can have multiple assets with different configurations.
+
+### **Editor Tab**
+* **Opacity:** Controls the transparency of the Overlay.
+* **Nudge:** Use the arrows to move the image pixel by pixel if the initial position was not precise.
+* **Capacity:** Support for images up to **3000x3000px**!
+
+### **Tools Tab**
+* **Copy Canvas:** 
+    1. Set **Point A**.
+    2. Set **Point B**.
+    3. Click **Detect and Download** to get an exact copy of that area of ​​the canvas.
+
+* **Show Overlay Progress:** Opens a floating panel for real-time tracking.
+    * **Color List:** Shows how many pixels are missing of each color.
+    * **Filters (⚙️):** You can hide finished colors or filter the list to delegate tasks.
+    * **Optimization:** The dashboard now loads instantly without freezing the browser.
+
+---
+
+## **5. Support and Thanks**
+
+In the header of the panel you will find the **Settings (⚙️)** button:
+- **Theme:** Switch between Light and Dark mode.
+- **Transparency:** Adjusts the opacity of the panel.
+
+**❤️ Support the Project**
+This script is free and is maintained by the community. If you have found it useful in defending your art, consider supporting the development with a donation (you will find the option in the settings menus).
+
+---
+
+Enjoy creating on **wplace.live** with VoX Overlay Pro! 🚀
+I honestly had no intention of finishing it, but I had a burst of creativity and here you go. (I don't think I will publish more updates) unless they are to update compatibility.
