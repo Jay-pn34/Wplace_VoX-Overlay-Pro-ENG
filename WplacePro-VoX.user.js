@@ -1,11 +1,11 @@
 // ==UserScript==
-// @name         Wplace Overlay Pro Modified By @SrCratier
+// @name         Wplace Overlay Pro Modified By @SrCratier and Translated by Jay-pn34
 // @namespace    http://tampermonkey.net/
 // @version      5.0.2
 // @description  Overlays tiles on wplace.live. Can also resize, and color-match your overlay to wplace's palette. Make sure to comply with the site's Terms of Service, and rules! This script is not affiliated with Wplace.live in any way, use at your own risk. This script is not affiliated with TamperMonkey. The author of this userscript is not responsible for any damages, issues, loss of data, or punishment that may occur as a result of using this script. This script is provided "as is" under GPLv3.
-// @author       shinkonet (Modificado por @SrCratier)
-// @updateURL    https://raw.githubusercontent.com/SrCratier/Wplace_VoX-Overlay-Pro/main/WplacePro-VoX.user.js
-// @downloadURL  https://raw.githubusercontent.com/SrCratier/Wplace_VoX-Overlay-Pro/main/WplacePro-VoX.user.js
+// @author       shinkonet (Modified by @SrCratier) (Translated by Jay-pn34)
+// @updateURL    https://github.com/Jay-pn34/Wplace_VoX-Overlay-Pro-ENG/raw/refs/heads/main/WplacePro-VoX.user.js
+// @downloadURL  https://github.com/Jay-pn34/Wplace_VoX-Overlay-Pro-ENG/raw/refs/heads/main/WplacePro-VoX.user.js
 // @match        https://wplace.live/*
 // @license      GPLv3
 // @grant        GM_setValue
@@ -132,17 +132,17 @@
 
     let lastKnownAvailableColors = new Set();
 
-    // ------------------------------- LISTA DE DONADORES ----------------------------------------
+    // ------------------------------- DONORS LIST ----------------------------------------
 
 const DONATORS = [
 
-{ name: "kleyder1205 ", contribution: "- Donó 5 USD   :D ❤️" },
-{ name: "Nuntius ", contribution: "- Donó 5 USD   :D ❤️" },
-{ name: "espressos work ", contribution: "- Donó 5 USD   :D ❤️" },
+{ name: "kleyder1205 ", contribution: "- Donated 5 USD :D ❤️" },
+{ name: "Nuntius ", contribution: "- Donated 5 USD :D ❤️" },
+{ name: "espressos work ", contribution: "- Donated 5 USD :D ❤️" },
 
 ];
 
-    // ---------------------------- FIN LISTA DE DONADORES ---------------------------------------
+    // ---------------------------- END OF DONORS LIST ---------------------------------------
 
   function uid() { return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`; }
       function debounce(func, wait) {
@@ -606,7 +606,7 @@ function showToast(message, duration = 3000) {
                     await saveConfig(['overlays']); clearOverlayCache();
                     config.autoCapturePixelUrl = false; await saveConfig(['autoCapturePixelUrl']);
                     const c = extractPixelCoords(ov.pixelUrl);
-                    showToast(`Ancla establecida para "${ov.name}": chunk ${c.chunk1}/${c.chunk2} en (${c.posX}, ${c.posY}).`);
+                    showToast(`Anchor set for "${ov.name}": chunk ${c.chunk1}/${c.chunk2} at (${c.posX}, ${c.posY}).`);
                 }
             }
             if (config.isSettingCopyPoint) {
@@ -619,7 +619,7 @@ function showToast(message, duration = 3000) {
                 };
                 const pointBeingSet = config.isSettingCopyPoint;
                 config[pointBeingSet === 'A' ? 'copyPointA' : 'copyPointB'] = point;
-                showToast(`Punto ${pointBeingSet} fijado en (${point.absX}, ${point.absY})`);
+                showToast(`Point ${pointBeingSet} set at (${point.absX}, ${point.absY})`);
                 config.isSettingCopyPoint = null;
                 const keysToSave = ['copyPointA', 'copyPointB', 'isSettingCopyPoint'];
                 if (config.copyPointA && config.copyPointB) {
@@ -629,9 +629,9 @@ function showToast(message, duration = 3000) {
                     if (config.showOverlay) {
                         config.showOverlay = false;
                         keysToSave.push('showOverlay');
-                        showToast('Área de previsualización activada. Overlay desactivado.');
+                        showToast('Preview area activated. Overlay disabled.');
                     } else {
-                        showToast('Área de previsualización activada.');
+                        showToast('Preview area activated.');
                     }
                     clearOverlayCache();
                 }
@@ -1098,7 +1098,7 @@ function injectStyles() {
         transition: max-height 0.3s ease-in-out;
       }
       .op-donators-list-wrap.show {
-        max-height: 150px; /* Altura máxima para la lista */
+        max-height: 150px; /* Maximum height for the list */
       }
       .op-donators-list {
         list-style: none;
@@ -1152,8 +1152,8 @@ panel.innerHTML = `
   <div class="op-header" id="op-header">
     <h3>VoX - Overlay Pro<span style="font-size: 13px; color: var(--op-muted); font-weight: 500; margin-left: 8px;">-_-/</span></h3>
     <div class="op-header-actions">
-        <button class="op-hdr-btn" id="op-main-settings-btn" title="Ajustes">⚙️</button>
-        <button class="op-toggle-btn" id="op-panel-toggle" title="Plegar/Desplegar">▾</button>
+        <button class="op-hdr-btn" id="op-main-settings-btn" title="Settings">⚙️</button>
+        <button class="op-toggle-btn" id="op-panel-toggle" title="Fold/Unfold">▾</button>
     </div>
   </div>
       <div class="op-content" id="op-content">
@@ -1168,15 +1168,15 @@ panel.innerHTML = `
         <div class="op-tabs">
             <button class="op-tab-btn active" data-tab="overlays">Overlays</button>
             <button class="op-tab-btn" data-tab="editor">Editor</button>
-            <button class="op-tab-btn" data-tab="tools">Herramientas</button>
+            <button class="op-tab-btn" data-tab="tools">Tools</button>
         </div>
 
         <div class="op-tab-panes op-section" style="padding-top: 12px; border-top-left-radius: 0;">
             <div class="op-tab-pane active" data-pane="overlays">
                 <div class="op-row space">
-                    <button class="op-button" id="op-add-overlay" title="Crear una nueva superposición">+ Add</button>
-                    <button class="op-button" id="op-import-overlay" title="Importar superposición desde JSON">Import</button>
-                    <button class="op-button" id="op-export-overlay" title="Exportar superposición activa a JSON">Export</button>
+                    <button class="op-button" id="op-add-overlay" title="Create a new overlay">+ Add</button>
+                    <button class="op-button" id="op-import-overlay" title="Import overlay from JSON">Import</button>
+                    <button class="op-button" id="op-export-overlay" title="Export active overlay to JSON">Export</button>
                 </div>
                 <div class="op-list" id="op-overlay-list"></div>
                             <div id="op-list-preview-area" style="display: none; margin-top: 8px;">
@@ -1188,34 +1188,34 @@ panel.innerHTML = `
 
             <div class="op-tab-pane" data-pane="editor">
                 <div id="op-editor-placeholder" class="op-muted" style="text-align:center; padding: 20px;">
-                    Selecciona un overlay para editarlo.
+                    Select an overlay to edit it.
                 </div>
                 <div id="op-editor-content" style="display:none; flex-direction:column; gap: 12px;">
                     <div>
                         <div class="op-row">
-                            <label style="width: 60px;">Nombre</label>
+                            <label style="width: 60px;">Name</label>
                             <input type="text" class="op-input op-grow" id="op-name">
                         </div>
                     </div>
                     <div>
                         <div class="op-row">
                             <label style="width: 60px;">Modo</label>
-                            <select class="op-select op-grow" id="op-color-mode" title="Elige cómo se procesan los colores.">
-                                <option value="perceptual">Natural (Recomendado para Fotos)</option>
-                                <option value="euclidean">Vibrante (Logos y Neón)</option>
-                                <option value="hsv">PESADO!💀(Prioridad Color/Anime)</option>
+                            <select class="op-select op-grow" id="op-color-mode" title="Choose how colors are processed.">
+                                <option value="perceptual">Natural (Recommended for Photos)</option>
+                                <option value="euclidean">Vibrant (Logos and Neon)</option>
+                                <option value="hsv">HEAVY!💀(Color/Anime Priority)</option>
                             </select>
                         </div>
                     </div>
                     <div>
                         <div id="op-image-source">
                             <div class="op-row">
-                                <label style="width: 60px;">Imagen</label>
-                                <input type="text" class="op-input op-grow" id="op-image-url" placeholder="Pega un enlace de imagen">
-                                <button class="op-button" id="op-fetch">Cargar</button>
+                                <label style="width: 60px;">Image</label>
+                                <input type="text" class="op-input op-grow" id="op-image-url" placeholder="Paste an image link">
+                                <button class="op-button" id="op-fetch">Load</button>
                             </div>
                             <div class="op-preview" id="op-dropzone" style="margin-top:8px;">
-                                <div class="op-drop-hint">Arrastra aquí o haz clic para buscar.</div>
+                                <div class="op-drop-hint">Drag here or click to browse.</div>
                                 <input type="file" id="op-file-input" accept="image/*" style="display:none">
                             </div>
                         </div>
@@ -1231,7 +1231,7 @@ panel.innerHTML = `
                     <div>
                       <div class="op-row"><span class="op-muted" id="op-coord-display"></span></div>
                       <div class="op-row" style="width: 100%; gap: 12px; padding: 6px 0;">
-                        <label style="width: 60px;">Opacidad</label>
+                        <label style="width: 60px;">Opacity</label>
                         <input type="range" min="0" max="1" step="0.05" class="op-slider op-grow" id="op-opacity-slider">
                         <span id="op-opacity-value" style="width: 36px; text-align: right;">100%</span>
                       </div>
@@ -1240,10 +1240,10 @@ panel.innerHTML = `
                         <div class="op-row space">
                          <span class="op-muted" id="op-offset-indicator">Offset X 0, Y 0</span>
                           <div class="op-nudge-controls" style="text-align: right;">
-                            <button class="op-icon-btn" id="op-nudge-left" title="Izquierda">←</button>
-                            <button class="op-icon-btn" id="op-nudge-down" title="Abajo">↓</button>
-                            <button class="op-icon-btn" id="op-nudge-up" title="Arriba">↑</button>
-                           <button class="op-icon-btn" id="op-nudge-right" title="Derecha">→</button>
+                            <button class="op-icon-btn" id="op-nudge-left" title="Left">←</button>
+                            <button class="op-icon-btn" id="op-nudge-down" title="Down">↓</button>
+                            <button class="op-icon-btn" id="op-nudge-up" title="Up">↑</button>
+                           <button class="op-icon-btn" id="op-nudge-right" title="Right">→</button>
                         </div>
                       </div>
                     </div>
@@ -1252,43 +1252,43 @@ panel.innerHTML = `
 
             <div class="op-tab-pane" data-pane="tools">
                 <div>
-                    <span style="font-weight:600; text-align:center; margin-bottom: 8px;">Copiar Lienzo</span>
+                    <span style="font-weight:600; text-align:center; margin-bottom: 8px;">Copy Canvas</span>
                     <div class="op-row space">
-                        <button class="op-button" id="op-copy-set-a">Fijar Punto A</button>
-                        <span class="op-muted" id="op-copy-a-coords">No fijado</span>
+                        <button class="op-button" id="op-copy-set-a">Set Point A</button>
+                        <span class="op-muted" id="op-copy-a-coords">Not set</span>
                     </div>
                     <div class="op-row space">
-                        <button class="op-button" id="op-copy-set-b">Fijar Punto B</button>
-                        <span class="op-muted" id="op-copy-b-coords">No fijado</span>
+                        <button class="op-button" id="op-copy-set-b">Set Point B</button>
+                        <span class="op-muted" id="op-copy-b-coords">Not set</span>
                     </div>
                     <div class="op-row space" style="margin-top: 8px;">
                         <span id="op-copy-info" class="op-muted" style="text-align:center; width:100%;"></span>
                     </div>
                      <div class="op-section" style="margin-top: 8px;">
                          <div class="op-row space">
-                             <span>Ajuste Fino:</span>
+                             <span>Fine Adjustment:</span>
                              <div class="op-row">
                                 <input type="radio" id="op-nudge-target-a" name="op-nudge-target" value="A" checked>
-                                <label for="op-nudge-target-a">Punto A</label>
+                                <label for="op-nudge-target-a">Point A</label>
                                 <input type="radio" id="op-nudge-target-b" name="op-nudge-target" value="B">
-                                <label for="op-nudge-target-b">Punto B</label>
+                                <label for="op-nudge-target-b">Point B</label>
                              </div>
                          </div>
                          <div class="op-nudge-controls" style="text-align: right;">
-                            <button class="op-icon-btn" id="op-nudge-copy-left" title="Izquierda">←</button>
-                            <button class="op-icon-btn" id="op-nudge-copy-down" title="Abajo">↓</button>
-                            <button class="op-icon-btn" id="op-nudge-copy-up" title="Arriba">↑</button>
-                            <button class="op-icon-btn" id="op-nudge-copy-right" title="Derecha">→</button>
+                            <button class="op-icon-btn" id="op-nudge-copy-left" title="Left">←</button>
+                            <button class="op-icon-btn" id="op-nudge-copy-down" title="Down">↓</button>
+                            <button class="op-icon-btn" id="op-nudge-copy-up" title="Up">↑</button>
+                            <button class="op-icon-btn" id="op-nudge-copy-right" title="Right">→</button>
                          </div>
                     </div>
                     <div class="op-row space" style="margin-top: 4px;">
-                        <button class="op-button" id="op-copy-preview-toggle" style="flex:1;">Visualizar Área</button>
-                        <button class="op-button" id="op-copy-create" style="flex:1;" title="Detecta y descarga una imagen del área seleccionada.">Detectar y Descargar</button>
+                        <button class="op-button" id="op-copy-preview-toggle" style="flex:1;">Visualize Area</button>
+                        <button class="op-button" id="op-copy-create" style="flex:1;" title="Detects and downloads an image of the selected area.">Detect and Download</button>
                     </div>
                 </div>
 
                 <div id="op-color-analysis-section" class="op-section" style="margin-top: 12px; padding: 12px; align-items: center;">
-                    <button class="op-button" id="op-analyze-colors-btn" style="width: 100%;">Mostrar Progreso del Overlay</button>
+                    <button class="op-button" id="op-analyze-colors-btn" style="width: 100%;">Show Overlay Progress</button>
                 </div>
 
             </div>
@@ -1302,17 +1302,17 @@ panel.innerHTML = `
     settingsModal.id = 'op-main-settings-modal';
     settingsModal.className = 'op-modal';
     settingsModal.innerHTML = `
-        <h3>Ajustes Generales</h3>
+        <h3>General Settings</h3>
         <div class="op-settings-row">
-            <span>Tema de la Interfaz</span>
-            <button class="op-button" id="op-theme-toggle">Claro / Oscuro</button>
+            <span>Interface Theme</span>
+            <button class="op-button" id="op-theme-toggle">Light / Dark</button>
         </div>
         <div class="op-settings-row">
-            <label>Transparencia del Panel</label>
+            <label>Panel Transparency</label>
         </div>
         <input type="range" id="op-panel-alpha-slider" min="0.4" max="1" step="0.05">
         <div class="op-donation-section">
-            <p>Este proyecto es gratuito, pero agradecería una donación para apoyar el desarrollo ❤️</p>
+            <p>This project is free, but I would appreciate a donation to support development ❤️</p>
             <div class="op-donation-info">
                 <span>Binance ID:</span>
                 <code>851390091</code>
@@ -1322,7 +1322,7 @@ panel.innerHTML = `
                 <code>@srcratier</code>
             </div>
         </div>
-         <button class="op-button op-show-donators">❤️ Ver Agradecimientos</button>
+         <button class="op-button op-show-donators">❤️ View Donators</button>
          <div class="op-donators-list-wrap"></div>
     `;
     document.body.appendChild(settingsModal);
@@ -1336,43 +1336,43 @@ panel.innerHTML = `
         colorAnalysisPanel.id = 'op-color-analysis-panel';
     colorAnalysisPanel.innerHTML = `
     <div class="op-ca-header" id="op-ca-header-drag">
-        <span>Progreso de Colores</span>
+        <span>Color Progress</span>
         <div class="op-ca-settings-wrap">
-            <button class="op-ca-settings-btn" id="op-ca-settings-btn" title="Ajustes de Progreso">⚙️</button>
-            <button class="op-ca-settings-btn" id="op-ca-toggle-collapse" title="Plegar/Desplegar" style="margin-left: 5px;">▾</button>
+            <button class="op-ca-settings-btn" id="op-ca-settings-btn" title="Progress Settings">⚙️</button>
+            <button class="op-ca-settings-btn" id="op-ca-toggle-collapse" title="Collapse/Expand" style="margin-left: 5px;">▾</button>
         </div>
     </div>
     <div class="op-ca-list" id="op-ca-list-content">
-        <span class="op-muted" style="text-align: center; padding: 20px 0;">Selecciona un overlay y haz clic en "Mostrar Progreso".</span>
+        <span class="op-muted" style="text-align: center; padding: 20px 0;">Select an overlay and click "Show Progress".</span>
     </div>
     <div class="op-ca-footer" id="op-ca-footer">
         <div class="op-ca-total-progress">
-            <span>Progreso Total:</span>
+            <span>Total Progress:</span>
             <span id="op-ca-total-percentage">0%</span>
         </div>
         <div class="op-ca-main-actions">
             <button class="op-button" id="op-ca-apply-filter">Apply</button>
-            <button class="op-button" id="op-ca-toggle-filters">⚙️ Filtros</button>
+            <button class="op-button" id="op-ca-toggle-filters">⚙️ Filters</button>
         </div>
     </div>
     <div class="op-ca-filters-pane" id="op-ca-filters-pane">
         <div class="op-ca-filter-actions">
-            <button class="op-button" id="op-ca-mark-available">Disponibles</button>
-            <button class="op-button" id="op-ca-mark-all">Marcar todo</button>
-            <button class="op-button" id="op-ca-mark-none">Desmarcar</button>
-            <button class="op-button" id="op-ca-show-all">Restaurar</button>
+            <button class="op-button" id="op-ca-mark-available">Available</button>
+            <button class="op-button" id="op-ca-mark-all">Mark All</button>
+            <button class="op-button" id="op-ca-mark-none">Unmark All</button>
+            <button class="op-button" id="op-ca-show-all">Restore</button>
         </div>
         <div class="op-ca-controls">
             <div class="op-ca-control-row">
-                <label>Mostrar nombres</label>
+                <label>Show Names</label>
                 <div class="op-switch" id="op-ca-show-names-toggle"></div>
             </div>
             <div class="op-ca-control-row">
-                <label>Mostrar progreso</label>
+                <label>Show Progress</label>
                 <div class="op-switch" id="op-ca-show-progress-toggle"></div>
             </div>
             <div class="op-ca-control-row">
-                <label>Solo faltantes</label>
+                <label>Show Remaining</label>
                 <div class="op-switch" id="op-ca-show-remaining-toggle"></div>
             </div>
         </div>
@@ -1384,19 +1384,19 @@ panel.innerHTML = `
     caSettingsModal.id = 'op-ca-settings-modal';
     caSettingsModal.className = 'op-modal';
     caSettingsModal.innerHTML = `
-        <h3>Ajustes de Progreso</h3>
+        <h3>Progress Settings</h3>
         <div class="op-ca-controls" style="display: flex; flex-direction: column; gap: 12px;">
             <div class="op-ca-control-row">
-                <label>Ordenar por cantidad</label>
+                <label>Sort by quantity</label>
                 <div class="op-switch" id="op-ca-sort-toggle"></div>
             </div>
 
         </div>
         <hr style="border-color: var(--op-border); margin: 12px 0;">
-        <label>Transparencia del Panel</label>
+        <label>Panel Transparency</label>
         <input type="range" id="op-ca-alpha-slider" min="0.2" max="1" step="0.05">
         <div class="op-donation-section">
-            <p>Este proyecto es gratuito, pero agradecería una donación para apoyar el proyecto ❤️</p>
+            <p>This project is free, but I would appreciate a donation to support the project ❤️</p>
             <div class="op-donation-info">
                 <span>Binance ID:</span>
                 <code>851390091</code>
@@ -1406,7 +1406,7 @@ panel.innerHTML = `
                 <code>@srcratier</code>
             </div>
         </div>
-         <button class="op-button op-show-donators">❤️ Ver Agradecimientos</button>
+         <button class="op-button op-show-donators">❤️ View Acknowledgements</button>
          <div class="op-donators-list-wrap"></div>
     `;
     document.body.appendChild(caSettingsModal);
@@ -1436,15 +1436,15 @@ function rebuildOverlayListUI() {
     const item = document.createElement('div');
     const isActive = ov.id === config.activeOverlayId;
     item.className = 'op-item' + (isActive ? ' active' : '');
-    const localTag = ov.isLocal ? ' (local)' : (!ov.imageBase64 ? ' (sin imagen)' : '');
-    const title = (ov.name || '(sin nombre)') + localTag;
+    const localTag = ov.isLocal ? ' (local)' : (!ov.imageBase64 ? ' (no image)' : '');
+    const title = (ov.name || '(no name)') + localTag;
 
     item.innerHTML = `
       <div class="op-row" style="width:100%;">
-        <input type="radio" name="op-active" ${isActive ? 'checked' : ''} title="Establecer como activa"/>
-        <input type="checkbox" ${ov.enabled ? 'checked' : ''} title="Activar/Desactivar"/>
+        <input type="radio" name="op-active" ${isActive ? 'checked' : ''} title="Set as active"/>
+        <input type="checkbox" ${ov.enabled ? 'checked' : ''} title="Enable/Disable"/>
         <div class="op-item-name" title="${title}">${title}</div>
-        <button class="op-icon-btn" title="Eliminar superposición">🗑️</button>
+        <button class="op-icon-btn" title="Delete overlay">🗑️</button>
       </div>
     `;
 
@@ -1468,7 +1468,7 @@ function rebuildOverlayListUI() {
 
     trashBtn.addEventListener('click', async (e) => {
       e.stopPropagation();
-      if (!confirm(`¿Eliminar la superposición "${ov.name || '(sin nombre)'}"?`)) return;
+      if (!confirm(`Delete the overlay "${ov.name || '(no name)'}"?`)) return;
       const idx = config.overlays.findIndex(o => o.id === ov.id);
       if (idx >= 0) {
         config.overlays.splice(idx, 1);
@@ -1577,7 +1577,7 @@ async function processImageToPalette(base64, mode = 'perceptual') {
 
   async function setOverlayImageFromURL(ov, url) {
     const mode = document.getElementById('op-color-mode').value;
-    showToast(`Procesando (${mode === 'euclidean' ? 'Matemático' : 'Natural'})...`);
+    showToast(`Processing (${mode === 'euclidean' ? 'Mathematical' : 'Natural'})...`);
 
     const rawBase64 = await urlToDataURL(url);
     const processedBase64 = await processImageToPalette(rawBase64, mode);
@@ -1595,15 +1595,15 @@ async function processImageToPalette(base64, mode = 'perceptual') {
 
     document.getElementById('op-color-mode').value = 'perceptual';
 
-    showToast(`Imagen procesada y cargada. Haz clic para establecer el ancla.`);
+    showToast(`Image processed and loaded. Click to set the anchor.`);
   }
 
 async function setOverlayImageFromFile(ov, file) {
-    if (!file || !file.type || !file.type.startsWith('image/')) { alert('Por favor, elige un archivo de imagen.'); return; }
-    if (!confirm('¡Los PNG locales no se pueden exportar/compartir! ¿Estás seguro?')) return;
+    if (!file || !file.type || !file.type.startsWith('image/')) { alert('Please choose an image file.'); return; }
+    if (!confirm('Local PNGs cannot be exported/shared! Are you sure?')) return;
 
     const mode = document.getElementById('op-color-mode').value;
-    showToast(`Procesando local (${mode === 'euclidean' ? 'Matemático' : 'Natural'})...`);
+    showToast(`Processing local (${mode === 'euclidean' ? 'Mathematical' : 'Natural'})...`);
 
     const rawBase64 = await fileToDataURL(file);
     const processedBase64 = await processImageToPalette(rawBase64, mode);
@@ -1621,15 +1621,15 @@ async function setOverlayImageFromFile(ov, file) {
 
     document.getElementById('op-color-mode').value = 'perceptual';
 
-    showToast(`Imagen local procesada. Haz clic para establecer el ancla.`);
+    showToast(`Local image processed. Click to set the anchor.`);
   }
 
   async function importOverlayFromJSON(jsonText) {
-    let obj; try { obj = JSON.parse(jsonText); } catch { alert('JSON inválido'); return; }
+    let obj; try { obj = JSON.parse(jsonText); } catch { alert('Invalid JSON'); return; }
     const arr = Array.isArray(obj) ? obj : [obj];
     let imported = 0, failed = 0;
     for (const item of arr) {
-      const name = uniqueName(item.name || 'Overlay Importado');
+      const name = uniqueName(item.name || 'Overlay Imported');
       const imageUrl = item.imageUrl;
       const pixelUrl = item.pixelUrl ?? null;
       const offsetX = Number.isFinite(item.offsetX) ? item.offsetX : 0;
@@ -1640,34 +1640,34 @@ async function setOverlayImageFromFile(ov, file) {
         const base64 = await urlToDataURL(imageUrl);
         const ov = { id: uid(), name, enabled: true, imageUrl, imageBase64: base64, isLocal: false, pixelUrl, offsetX, offsetY, opacity };
         config.overlays.push(ov); imported++;
-      } catch (e) { console.error('Importación fallida para', imageUrl, e); failed++; }
+      } catch (e) { console.error('Import failed for', imageUrl, e); failed++; }
     }
     if (imported > 0) {
       config.activeOverlayId = config.overlays[config.overlays.length - 1].id;
       await saveConfig(['overlays', 'activeOverlayId']); clearOverlayCache(); ensureHook(); updateUI();
     }
-    alert(`Importación finalizada. Importados: ${imported}${failed ? `, Fallidos: ${failed}` : ''}`);
+    alert(`Import finished. Imported: ${imported}${failed ? `, Failed: ${failed}` : ''}`);
   }
 
   function exportActiveOverlayToClipboard() {
     const ov = getActiveOverlay();
-    if (!ov) { alert('No hay ninguna superposición activa seleccionada.'); return; }
-    if (ov.isLocal || !ov.imageUrl) { alert('Esta superposición usa una imagen local y no se puede exportar. Por favor, aloja la imagen en línea y establece una URL.'); return; }
+    if (!ov) { alert('No active overlay selected.'); return; }
+    if (ov.isLocal || !ov.imageUrl) { alert('This overlay uses a local image and cannot be exported. Please host the image online and set a URL.'); return; }
     const payload = { version: 1, name: ov.name, imageUrl: ov.imageUrl, pixelUrl: ov.pixelUrl ?? null, offsetX: ov.offsetX, offsetY: ov.offsetY, opacity: ov.opacity };
     const text = JSON.stringify(payload, null, 2);
-    copyText(text).then(() => alert('¡JSON de la superposición copiado al portapapeles!')).catch(() => { prompt('Copia el siguiente JSON:', text); });
+    copyText(text).then(() => alert('Overlay JSON copied to clipboard!')).catch(() => { prompt('Copy the following JSON:', text); });
   }
   function copyText(text) { if (navigator.clipboard && navigator.clipboard.writeText) return navigator.clipboard.writeText(text); return Promise.reject(new Error('Clipboard API not available')); }
 
   async function createCanvasCopy() {
     const { copyPointA: pA, copyPointB: pB } = config;
     if (!pA || !pB) {
-        showToast('Debes fijar los puntos A y B primero.');
+        showToast('You must set points A and B first.');
         return;
     }
 
     if (config.showOverlay && config.overlayMode !== 'original') {
-        showToast('Aviso: Se está copiando el lienzo original sin la superposición.', 4000);
+        showToast('Warning: Copying original canvas without overlay.', 4000);
     }
 
     const minX = Math.min(pA.absX, pB.absX);
@@ -1679,7 +1679,7 @@ async function setOverlayImageFromFile(ov, file) {
     const H = maxY - minY + 1;
 
     if (W > 50000 || H > 50000) {
-        showToast(`El área es demasiado grande (${W}x${H}). El máximo es 50000px por lado.`);
+        showToast(`The area is too large (${W}x${H}). The maximum is 50000px per side.`);
         return;
     }
 
@@ -1698,12 +1698,12 @@ async function setOverlayImageFromFile(ov, file) {
     }
 
     if (missingTiles.length > 0) {
-        showToast(`Área incompleta. Por favor, mueva el mapa sobre toda la zona seleccionada para que se carguen los datos y vuelva a intentarlo.`);
-        console.log("Faltan los siguientes tiles:", missingTiles);
+        showToast(`Incomplete area. Please move the map over the entire selected zone so that the data is loaded and try again.`);
+        console.log("Missing tiles:", missingTiles);
         return;
     }
 
-    showToast(`Copiando ${W}x${H}px...`);
+    showToast(`Copying ${W}x${H}px...`);
 
     const canvas = createHTMLCanvas(W, H);
     const ctx = canvas.getContext('2d');
@@ -1737,7 +1737,7 @@ async function setOverlayImageFromFile(ov, file) {
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    showToast(`¡Copia del lienzo descargada!`);
+    showToast(`Canvas copy downloaded!`);
 
     if (config.copyPreviewActive) {
         config.copyPreviewActive = false;
@@ -1752,7 +1752,7 @@ async function setOverlayImageFromFile(ov, file) {
       const targetKey = config.copyNudgeTarget === 'A' ? 'copyPointA' : 'copyPointB';
       const point = config[targetKey];
       if (!point) {
-          showToast(`El punto ${config.copyNudgeTarget} no está fijado.`);
+          showToast(`The point ${config.copyNudgeTarget} is not set.`);
           return;
       }
       point.absX += dx;
@@ -1787,7 +1787,7 @@ applyTheme();
         clearOverlayCache();
         ensureHook();
         updateUI();
-        showToast('Cambios aplicados. Mueve el mapa o pon un píxel para verlos.');
+        showToast('Changes applied. Move the map or place a pixel to see them.');
     });
 
     $('op-mode-toggle').addEventListener('click', () => {
@@ -1798,7 +1798,7 @@ applyTheme();
         clearOverlayCache();
         ensureHook();
         updateUI();
-        showToast('Modo cambiado. Mueve el mapa para actualizar.');
+        showToast('Mode changed. Move the map to update.');
     });
 
     $('op-autocap-toggle').addEventListener('click', () => {
@@ -1830,12 +1830,12 @@ applyTheme();
             if (!config.showOverlay) {
                 config.showOverlay = true;
                 keysToSave.push('showOverlay');
-                showToast('Superposición activada para mostrar errores.');
+                showToast('Overlay enabled to show errors.');
             }
             if (config.overlayMode === 'original') {
                 config.overlayMode = 'minify';
                 keysToSave.push('overlayMode');
-                showToast("Modo cambiado a 'Minificado' para mostrar errores.");
+                showToast("Mode changed to 'Minified' to show errors.");
             }
         }
         config.showErrors = enabling;
@@ -1843,7 +1843,7 @@ applyTheme();
         clearOverlayCache();
         ensureHook();
         updateUI();
-        showToast('Modo de errores actualizado. Mueve el mapa para ver cambios.');
+        showToast('Error mode updated. Move the map to see changes.');
     });
 
     document.querySelectorAll('.op-tab-btn').forEach(btn => {
@@ -1858,21 +1858,21 @@ applyTheme();
             console.error(e);
         }
     });
-    $('op-import-overlay').addEventListener('click', async () => { const text = prompt('Pega el JSON de la superposición (simple o array):'); if (!text) return; await importOverlayFromJSON(text); });
+    $('op-import-overlay').addEventListener('click', async () => { const text = prompt('Paste the overlay JSON (simple or array):'); if (!text) return; await importOverlayFromJSON(text); });
     $('op-export-overlay').addEventListener('click', () => exportActiveOverlayToClipboard());
 
     $('op-name').addEventListener('change', async (e) => {
         const ov = getActiveOverlay(); if (!ov) return;
         const desired = (e.target.value || '').trim() || 'Overlay';
-        if (config.overlays.some(o => o.id !== ov.id && (o.name || '').toLowerCase() === desired.toLowerCase())) { ov.name = uniqueName(desired); showToast(`Nombre en uso. Renombrado a "${ov.name}".`); } else { ov.name = desired; }
+        if (config.overlays.some(o => o.id !== ov.id && (o.name || '').toLowerCase() === desired.toLowerCase())) { ov.name = uniqueName(desired); showToast(`Name in use. Renamed to "${ov.name}".`); } else { ov.name = desired; }
         await saveConfig(['overlays']); rebuildOverlayListUI();
     });
 
     $('op-fetch').addEventListener('click', async () => {
-        const ov = getActiveOverlay(); if (!ov) { alert('No hay ninguna superposición activa seleccionada.'); return; }
-        if (ov.imageBase64) { alert('Esta superposición ya tiene una imagen. Crea una nueva para cambiarla.'); return; }
-        const url = $('op-image-url').value.trim(); if (!url) { alert('Ingresa un enlace de imagen primero.'); return; }
-        try { await setOverlayImageFromURL(ov, url); } catch (e) { console.error(e); alert('No se pudo cargar la imagen.'); }
+        const ov = getActiveOverlay(); if (!ov) { alert('No active overlay selected.'); return; }
+        if (ov.imageBase64) { alert('This overlay already has an image. Create a new one to change it.'); return; }
+        const url = $('op-image-url').value.trim(); if (!url) { alert('Enter an image URL first.'); return; }
+        try { await setOverlayImageFromURL(ov, url); } catch (e) { console.error(e); alert('Failed to load the image.'); }
     });
 
     const dropzone = $('op-dropzone');
@@ -1880,21 +1880,21 @@ applyTheme();
     $('op-file-input').addEventListener('change', async (e) => {
         const file = e.target.files && e.target.files[0]; e.target.value = ''; if (!file) return;
         const ov = getActiveOverlay(); if (!ov) return;
-        if (ov.imageBase64) { alert('Esta superposición ya tiene una imagen. Crea una nueva para cambiarla.'); return; }
-        try { await setOverlayImageFromFile(ov, file); } catch (err) { console.error(err); alert('No se pudo cargar la imagen local.'); }
+        if (ov.imageBase64) { alert('This overlay already has an image. Create a new one to change it.'); return; }
+        try { await setOverlayImageFromFile(ov, file); } catch (err) { console.error(err); alert('Failed to load the local image.'); }
     });
     ['dragenter', 'dragover'].forEach(evt => dropzone.addEventListener(evt, (e) => { e.preventDefault(); e.stopPropagation(); dropzone.classList.add('drop-highlight'); }));
     ['dragleave', 'drop'].forEach(evt => dropzone.addEventListener(evt, (e) => { e.preventDefault(); e.stopPropagation(); if (evt === 'dragleave' && e.target !== dropzone) return; dropzone.classList.remove('drop-highlight'); }));
     dropzone.addEventListener('drop', async (e) => {
         const dt = e.dataTransfer; if (!dt) return; const file = dt.files && dt.files[0]; if (!file) return;
         const ov = getActiveOverlay(); if (!ov) return;
-        if (ov.imageBase64) { alert('Esta superposición ya tiene una imagen. Crea una nueva para cambiarla.'); return; }
-        try { await setOverlayImageFromFile(ov, file); } catch (err) { console.error(err); alert('No se pudo cargar la imagen arrastrada.'); }
+        if (ov.imageBase64) { alert('This overlay already has an image. Create a new one to change it.'); return; }
+        try { await setOverlayImageFromFile(ov, file); } catch (err) { console.error(err); alert('Failed to load the dragged image.'); }
     });
 
         const debouncedRefresh = debounce(() => {
         clearOverlayCache();
-        showToast('Posición actualizada. Mueve el mapa para ver el cambio.', 2000);
+        showToast('Position updated. Move the map to see the change.', 2000);
     }, 500);
 
     const debouncedSave = debounce(() => {
@@ -1926,19 +1926,19 @@ applyTheme();
             config.showErrors = false;
             saveConfig(['showErrors']);
             clearOverlayCache();
-            showToast('Modo de errores desactivado para ajustar la opacidad.');
+            showToast('Error mode disabled to adjust opacity.');
             updateUI();
         }
     });
     $('op-opacity-slider').addEventListener('change', async () => {
         await saveConfig(['overlays']);
         clearOverlayCache();
-        showToast('Opacidad guardada. Mueve el mapa para actualizar.');
+        showToast('Opacity saved. Move the map to update.');
     });
 
     $('op-download-overlay').addEventListener('click', () => {
         const ov = getActiveOverlay();
-        if (!ov || !ov.imageBase64) { showToast('No hay imagen para descargar.'); return; }
+        if (!ov || !ov.imageBase64) { showToast('No image to download.'); return; }
         const a = document.createElement('a');
         a.href = ov.imageBase64;
         a.download = `${(ov.name || 'overlay').replace(/[^\w.-]+/g, '_')}.png`;
@@ -1947,13 +1947,13 @@ applyTheme();
     });
 
     $('op-open-cc').addEventListener('click', () => {
-        const ov = getActiveOverlay(); if (!ov || !ov.imageBase64) { showToast('No hay imagen para editar.'); return; }
+        const ov = getActiveOverlay(); if (!ov || !ov.imageBase64) { showToast('No image to edit.'); return; }
         openCCModal(ov);
     });
 
     $('op-open-resize').addEventListener('click', () => {
         const ov = getActiveOverlay();
-        if (!ov || !ov.imageBase64) { showToast('No hay imagen para redimensionar.'); return; }
+        if (!ov || !ov.imageBase64) { showToast('No image to resize.'); return; }
         openRSModal(ov);
     });
 
@@ -1961,7 +1961,7 @@ applyTheme();
         config.isSettingCopyPoint = point;
         if (point) config.autoCapturePixelUrl = false;
         saveConfig(['isSettingCopyPoint', 'autoCapturePixelUrl']);
-        showToast(`Haz clic en el lienzo para fijar el punto ${point}`);
+        showToast(`Click on the canvas to set point ${point}`);
         updateUI();
         ensureHook();
     };
@@ -1970,7 +1970,7 @@ applyTheme();
     $('op-copy-create').addEventListener('click', () => { createCanvasCopy(); });
     $('op-copy-preview-toggle').addEventListener('click', () => {
         if (!config.copyPointA || !config.copyPointB) {
-            showToast('Primero debes fijar los puntos A y B.');
+            showToast('First you must set points A and B.');
             return;
         }
         const activating = !config.copyPreviewActive;
@@ -1980,7 +1980,7 @@ applyTheme();
             overlayStateBeforePreview = config.showOverlay;
             if (config.showOverlay) {
                 config.showOverlay = false;
-                showToast('Overlay desactivado para mostrar la previsualización.');
+                showToast('Overlay disabled to show preview.');
             }
         } else {
             config.showOverlay = overlayStateBeforePreview;
@@ -2089,7 +2089,7 @@ applyTheme();
             } else {
                 let listHTML = '<ul class="op-donators-list">';
                 if (DONATORS.length === 0) {
-                    listHTML += '<li class="op-donator-item-empty">Aún no hay donaciones. ¡Sé el primero!</li>';
+                    listHTML += '<li class="op-donator-item-empty">No donations yet. Be the first!</li>';
                 } else {
                     DONATORS.forEach(d => {
                         listHTML += `<li class="op-donator-item"><span class="op-donator-name">${d.name}</span><span class="op-donator-contribution">${d.contribution}</span></li>`;
@@ -2174,13 +2174,13 @@ async function updateOverlayProgress() {
     if (mainActions) mainActions.style.display = 'none';
 
     if (!ov || !ov.imageBase64 || !ov.pixelUrl) {
-        panelContent.innerHTML = `<span class="op-muted" style="text-align: center; padding: 20px 0;">Selecciona un overlay con imagen y ancla fijada.</span>`;
+        panelContent.innerHTML = `<span class="op-muted" style="text-align: center; padding: 20px 0;">Select an overlay with image and fixed anchor.</span>`;
         totalPercentageEl.textContent = 'N/A';
         return;
     }
 
     if (mainActions) mainActions.style.display = 'flex';
-    panelContent.innerHTML = `<span class="op-muted" style="text-align: center; padding: 20px 0;">Analizando...</span>`;
+    panelContent.innerHTML = `<span class="op-muted" style="text-align: center; padding: 20px 0;">Analyzing...</span>`;
     totalPercentageEl.textContent = '0%';
 
     try {
@@ -2202,7 +2202,7 @@ async function updateOverlayProgress() {
         }
 
         if (colorData.size === 0) {
-            panelContent.innerHTML = `<span class="op-muted" style="text-align: center; padding: 20px 0;">La imagen está vacía.</span>`;
+            panelContent.innerHTML = `<span class="op-muted" style="text-align: center; padding: 20px 0;">The image is empty.</span>`;
             return;
         }
 
@@ -2239,7 +2239,7 @@ async function updateOverlayProgress() {
         let totalNeeded = 0, totalPlaced = 0;
         let colorsArray = Array.from(colorData.entries()).map(([key, { needed, placed }]) => {
             totalNeeded += needed; totalPlaced += placed;
-            return { key, name: WPLACE_NAMES[key] || 'Desconocido', needed, placed, isAvailable: availableColors.has(key) };
+            return { key, name: WPLACE_NAMES[key] || 'Unknown', needed, placed, isAvailable: availableColors.has(key) };
         });
 
         colorsArray.sort((a, b) => {
@@ -2279,16 +2279,16 @@ async function updateOverlayProgress() {
             ov.savedFilters = colors;
             await saveConfig(['overlays']);
             clearOverlayCache();
-            showToast(message + ' Mueve el mapa para ver los cambios.');
+            showToast(message + ' Move the map to see changes.');
         };
 
         document.getElementById('op-ca-apply-filter').onclick = () => {
             const selected = Array.from(panelContent.querySelectorAll('.op-ca-filter-check:checked')).map(cb => cb.dataset.colorKey);
-            applyAndRefresh(true, selected, `Filtro aplicado. Mostrando ${selected.length} colores.`);
+            applyAndRefresh(true, selected, `Filter applied. Showing ${selected.length} colors.`);
         };
         document.getElementById('op-ca-show-all').onclick = () => {
             panelContent.querySelectorAll('.op-ca-filter-check').forEach(cb => cb.checked = true);
-            applyAndRefresh(false, [], 'Filtro eliminado. Mostrando todos los colores.');
+            applyAndRefresh(false, [], 'Filter removed. Showing all colors.');
         };
         document.getElementById('op-ca-mark-available').onclick = () => {
             const availableSet = new Set(colorsArray.filter(c => c.isAvailable).map(c => c.key));
@@ -2298,8 +2298,8 @@ async function updateOverlayProgress() {
         document.getElementById('op-ca-mark-none').onclick = () => panelContent.querySelectorAll('.op-ca-filter-check').forEach(cb => cb.checked = false);
 
     } catch (error) {
-        console.error("Error al actualizar progreso del overlay:", error);
-        panelContent.innerHTML = `<span class="op-muted op-danger-text" style="text-align: center; padding: 20px 0;">Error al procesar la imagen.</span>`;
+        console.error("Error updating overlay progress:", error);
+        panelContent.innerHTML = `<span class="op-muted op-danger-text" style="text-align: center; padding: 20px 0;">Error processing image.</span>`;
         totalPercentageEl.textContent = 'Error';
     }
 }
@@ -2422,7 +2422,7 @@ async function updateOverlayProgress() {
     const coords = ov.pixelUrl ? extractPixelCoords(ov.pixelUrl) : { chunk1: '-', chunk2: '-', posX: '-', posY: '-' };
     $('op-coord-display').textContent = ov.pixelUrl
       ? `Ref: chunk ${coords.chunk1}/${coords.chunk2} en (${coords.posX}, ${coords.posY})`
-      : `No se ha fijado ancla. Activa "Fijar ancla" y haz clic en un píxel.`;
+      : `No anchor has been set. Activate "Fix Anchor" and click on a pixel.`;
 
     $('op-opacity-slider').value = String(ov.opacity);
     $('op-opacity-value').textContent = Math.round(ov.opacity * 100) + '%';
@@ -2435,29 +2435,29 @@ async function updateOverlayProgress() {
     const $ = (id) => document.getElementById(id);
 
     const { copyPointA: pA, copyPointB: pB, isSettingCopyPoint, copyPreviewActive } = config;
-    $('op-copy-a-coords').textContent = pA ? `(${pA.absX}, ${pA.absY})` : 'No fijado';
-    $('op-copy-b-coords').textContent = pB ? `(${pB.absX}, ${pB.absY})` : 'No fijado';
+    $('op-copy-a-coords').textContent = pA ? `(${pA.absX}, ${pA.absY})` : 'Not pinned';
+    $('op-copy-b-coords').textContent = pB ? `(${pB.absX}, ${pB.absY})` : 'Not pinned';
 
     const btnA = $('op-copy-set-a');
     const btnB = $('op-copy-set-b');
     btnA.classList.toggle('op-danger', isSettingCopyPoint === 'A');
     btnB.classList.toggle('op-danger', isSettingCopyPoint === 'B');
-    btnA.textContent = isSettingCopyPoint === 'A' ? 'Fijando A...' : 'Fijar Punto A';
-    btnB.textContent = isSettingCopyPoint === 'B' ? 'Fijando B...' : 'Fijar Punto B';
+    btnA.textContent = isSettingCopyPoint === 'A' ? 'Fixing A...' : 'Fix Point A';
+    btnB.textContent = isSettingCopyPoint === 'B' ? 'Fixing B...' : 'Fix Point B';
 
     const info = $('op-copy-info');
     const canCreate = pA && pB;
     if (canCreate) {
         const W = Math.abs(pA.absX - pB.absX) + 1;
         const H = Math.abs(pA.absY - pB.absY) + 1;
-        info.textContent = `Tamaño seleccionado: ${W} x ${H} píxeles.`;
+        info.textContent = `Selected size: ${W} x ${H} pixels.`;
     } else {
-        info.textContent = 'Selecciona dos puntos para definir un área.';
+        info.textContent = 'Select two points to define an area.';
     }
 
     const previewBtn = $('op-copy-preview-toggle');
     previewBtn.disabled = !canCreate;
-    previewBtn.textContent = copyPreviewActive ? 'Ocultar Área' : 'Visualizar Área';
+    previewBtn.textContent = copyPreviewActive ? 'Hide Area' : 'Preview Area';
     previewBtn.classList.toggle('op-danger', copyPreviewActive);
 
     $('op-copy-create').disabled = !copyPreviewActive;
@@ -2504,7 +2504,7 @@ function updateUI() {
     const collapsed = !!config.isPanelCollapsed;
     content.style.display = collapsed ? 'none' : 'flex';
     toggle.textContent = collapsed ? '▸' : '▾';
-    toggle.title = collapsed ? 'Expandir' : 'Plegar';
+    toggle.title = collapsed ? 'Expand' : 'Collapse';
 
     const showOverlayBtn = $('op-show-overlay-toggle');
     showOverlayBtn.textContent = `Overlay: ${config.showOverlay ? 'ON' : 'OFF'}`;
@@ -2529,7 +2529,7 @@ function updateUI() {
     const ov = getActiveOverlay();
     const canExport = !!(ov && ov.imageUrl && !ov.isLocal);
     exportBtn.disabled = !canExport;
-    exportBtn.title = canExport ? 'Exportar superposición activa a JSON' : 'Exportación desactivada para imágenes locales';
+    exportBtn.title = canExport ? 'Export active overlay to JSON' : 'Export disabled for local images';
 
     const analyzeBtn = $('op-analyze-colors-btn');
     if(analyzeBtn) analyzeBtn.classList.toggle('op-danger', config.isColorPanelVisible);
@@ -2593,10 +2593,10 @@ function updateUI() {
 
     modal.innerHTML = `
       <div class="op-cc-header" id="op-cc-header">
-        <div class="op-cc-title">Ajuste de Color</div>
+        <div class="op-cc-title">Color Adjustment</div>
         <div class="op-row" style="gap:6px;">
-          <button class="op-button op-cc-pill" id="op-cc-realtime" title="Activa/Desactiva el cálculo en tiempo real al cambiar la paleta.">En vivo: OFF</button>
-          <button class="op-cc-close" id="op-cc-close" title="Cerrar">✕</button>
+          <button class="op-button op-cc-pill" id="op-cc-realtime" title="Enable/Disable real-time calculation when changing the palette.">Real-time: OFF</button>
+          <button class="op-cc-close" id="op-cc-close" title="Close">✕</button>
         </div>
       </div>
 
@@ -2604,24 +2604,24 @@ function updateUI() {
         <div class="op-cc-preview-wrap" style="grid-area: preview;">
           <canvas id="op-cc-preview" class="op-cc-canvas"></canvas>
           <div class="op-cc-zoom">
-            <button class="op-icon-btn" id="op-cc-zoom-out" title="Alejar">−</button>
-            <button class="op-icon-btn" id="op-cc-zoom-in" title="Acercar">+</button>
+            <button class="op-icon-btn" id="op-cc-zoom-out" title="Zoom out">−</button>
+            <button class="op-icon-btn" id="op-cc-zoom-in" title="Zoom in">+</button>
           </div>
         </div>
 
         <div class="op-cc-controls" style="grid-area: controls;">
           <div class="op-cc-palette" id="op-cc-free">
             <div class="op-row space">
-              <label>Colores Gratuitos</label>
-              <button class="op-button" id="op-cc-free-toggle" title="Seleccionar/Deseleccionar todos los colores de esta paleta.">Desmarcar todo</button>
+              <label>Free Colors</label>
+              <button class="op-button" id="op-cc-free-toggle" title="Select/Unselect all colors in this palette.">Uncheck all</button>
             </div>
             <div id="op-cc-free-grid" class="op-cc-grid"></div>
           </div>
 
           <div class="op-cc-palette" id="op-cc-paid">
             <div class="op-row space">
-              <label>Colores de Pago (2000💧)</label>
-              <button class="op-button" id="op-cc-paid-toggle" title="Seleccionar/Deseleccionar todos los colores de esta paleta.">Marcar todo</button>
+              <label>Paid Colors (2000💧)</label>
+              <button class="op-button" id="op-cc-paid-toggle" title="Select/Unselect all colors in this palette.">Check all</button>
             </div>
             <div id="op-cc-paid-grid" class="op-cc-grid"></div>
           </div>
@@ -2631,9 +2631,9 @@ function updateUI() {
       <div class="op-cc-footer">
         <div class="op-cc-ghost" id="op-cc-meta"></div>
         <div class="op-cc-actions">
-          <button class="op-button" id="op-cc-recalc" title="Recalcular el mapeo de colores">Calcular</button>
-          <button class="op-button" id="op-cc-apply" title="Aplicar cambios a la superposición">Aplicar</button>
-          <button class="op-button" id="op-cc-cancel" title="Cerrar sin guardar">Cancelar</button>
+          <button class="op-button" id="op-cc-recalc" title="Recalculate the color mapping">Calculate</button>
+          <button class="op-button" id="op-cc-apply" title="Apply changes to the overlay">Apply</button>
+          <button class="op-button" id="op-cc-cancel" title="Close without saving">Cancel</button>
         </div>
       </div>
     `;
@@ -2688,17 +2688,17 @@ function updateUI() {
     cc.applyBtn.addEventListener('click', async () => {
       const ov = cc.overlay; if (!ov) return;
       const activePalette = getActivePalette();
-      if (activePalette.length === 0) { showToast('Selecciona al menos un color.'); return; }
+      if (activePalette.length === 0) { showToast('Select at least one color.'); return; }
       if (cc.isStale) recalcNow();
-      if (!cc.processedCanvas) { showToast('No hay nada que aplicar.'); return; }
+      if (!cc.processedCanvas) { showToast('Nothing to apply.'); return; }
       if (cc.processedCanvas.width >= MAX_OVERLAY_DIM || cc.processedCanvas.height >= MAX_OVERLAY_DIM) {
-        showToast(`La imagen es demasiado grande para aplicar (debe ser < ${MAX_OVERLAY_DIM}×${MAX_OVERLAY_DIM}).`); return;
+        showToast(`The image is too large to apply (must be < ${MAX_OVERLAY_DIM}×${MAX_OVERLAY_DIM}).`); return;
       }
       const dataUrl = cc.processedCanvas.toDataURL('image/png');
       ov.imageBase64 = dataUrl; ov.imageUrl = null; ov.isLocal = true;
       await saveConfig(['overlays']); clearOverlayCache(); ensureHook(); updateUI();
       const uniqueColors = Object.keys(cc.lastColorCounts).length;
-      showToast(`Superposición actualizada (${cc.processedCanvas.width}×${cc.processedCanvas.height}, ${uniqueColors} colores).`);
+      showToast(`Overlay updated (${cc.processedCanvas.width}×${cc.processedCanvas.height}, ${uniqueColors} colors).`);
       closeCCModal();
     });
 
@@ -2723,7 +2723,7 @@ function updateUI() {
 
     function markStale() {
       cc.isStale = true;
-      cc.meta.textContent = cc.meta.textContent.replace(/ \| Estado: .+$/, '') + ' | Estado: pendiente de recálculo';
+      cc.meta.textContent = cc.meta.textContent.replace(/ \| Status: .+$/, '') + ' | Status: pending recalculation';
     }
     function recalcNow() {
       processImage();
@@ -2832,8 +2832,8 @@ function updateUI() {
     if (!cc.sourceImageData) { cc.meta.textContent = ''; return; }
     const w = cc.sourceImageData.width, h = cc.sourceImageData.height;
     const colorsUsed = Object.keys(cc.lastColorCounts||{}).length;
-    const status = cc.isStale ? 'pendiente de recálculo' : 'actualizado';
-    cc.meta.textContent = `Tamaño: ${w}×${h} | Zoom: ${cc.zoom.toFixed(2)}× | Colores: ${colorsUsed} | Estado: ${status}`;
+    const status = cc.isStale ? 'pending recalculation' : 'updated';
+    cc.meta.textContent = `Size: ${w}×${h} | Zoom: ${cc.zoom.toFixed(2)}× | Colors: ${colorsUsed} | Status: ${status}`;
   }
 
   function renderPaletteGrid() {
@@ -2879,8 +2879,8 @@ function updateUI() {
   }
 
   function updateMasterButtons() {
-    cc.freeToggle.textContent = isAllFreeActive() ? 'Desmarcar todo' : 'Marcar todo';
-    cc.paidToggle.textContent = isAllPaidActive() ? 'Desmarcar todo' : 'Marcar todo';
+    cc.freeToggle.textContent = isAllFreeActive() ? 'Uncheck all' : 'Check all';
+    cc.paidToggle.textContent = isAllPaidActive() ? 'Uncheck all' : 'Check all';
   }
   function isAllFreeActive() { return DEFAULT_FREE_KEYS.every(k => cc.selectedFree.has(k)); }
   function isAllPaidActive() {
@@ -2913,13 +2913,13 @@ function updateUI() {
 
     modal.innerHTML = `
       <div class="op-rs-header" id="op-rs-header">
-        <div class="op-rs-title">Redimensionar Superposición</div>
-        <button class="op-rs-close" id="op-rs-close" title="Cerrar">✕</button>
+        <div class="op-rs-title">Resize Overlay</div>
+        <button class="op-rs-close" id="op-rs-close" title="Close">✕</button>
       </div>
 
       <div class="op-rs-tabs">
         <button class="op-rs-tab-btn active" id="op-rs-tab-simple">Simple</button>
-        <button class="op-rs-tab-btn" id="op-rs-tab-advanced">Avanzado (cuadrícula)</button>
+        <button class="op-rs-tab-btn" id="op-rs-tab-advanced">Advanced (grid)</button>
       </div>
 
       <div class="op-rs-body">
@@ -2929,19 +2929,19 @@ function updateUI() {
             <input type="text" class="op-input" id="op-rs-orig" disabled>
           </div>
           <div class="op-rs-row">
-            <label style="width:110px;">Ancho</label>
+            <label style="width:110px;">Width</label>
             <input type="number" min="1" step="1" class="op-input" id="op-rs-w">
           </div>
           <div class="op-rs-row">
-            <label style="width:110px;">Alto</label>
+            <label style="width:110px;">Height</label>
             <input type="number" min="1" step="1" class="op-input" id="op-rs-h">
           </div>
           <div class="op-rs-row">
             <input type="checkbox" id="op-rs-lock" checked>
-            <label for="op-rs-lock">Bloquear relación de aspecto</label>
+            <label for="op-rs-lock">Lock aspect ratio</label>
           </div>
           <div class="op-rs-row" style="gap:6px; flex-wrap:wrap;">
-            <label style="width:110px;">Rápido</label>
+            <label style="width:110px;">Fast</label>
             <button class="op-button" id="op-rs-double">2x</button>
             <button class="op-button" id="op-rs-onex">1x</button>
             <button class="op-button" id="op-rs-half">0.5x</button>
@@ -2949,9 +2949,9 @@ function updateUI() {
             <button class="op-button" id="op-rs-quarter">0.25x</button>
           </div>
           <div class="op-rs-row">
-            <label style="width:110px;">Factor de escala</label>
+            <label style="width:110px;">Scale factor</label>
             <input type="number" step="0.01" min="0.01" class="op-input" id="op-rs-scale" placeholder="ej. 0.5">
-            <button class="op-button" id="op-rs-apply-scale">Aplicar</button>
+            <button class="op-button" id="op-rs-apply-scale">Apply</button>
           </div>
 
           <div class="op-rs-preview-wrap" id="op-rs-sim-wrap">
@@ -2962,7 +2962,7 @@ function updateUI() {
                 <canvas id="op-rs-sim-orig" class="op-rs-canvas op-rs-thumb"></canvas>
               </div>
               <div class="op-rs-col" id="op-rs-col-right">
-                <div class="label">Resultado</div>
+                <div class="label">Result</div>
                 <div class="pad-top"></div>
                 <canvas id="op-rs-sim-new" class="op-rs-canvas op-rs-thumb"></canvas>
               </div>
@@ -2974,24 +2974,24 @@ function updateUI() {
           <div class="op-rs-preview-wrap op-pan-grab" id="op-rs-adv-wrap">
             <canvas id="op-rs-preview" class="op-rs-canvas"></canvas>
             <div class="op-rs-zoom">
-              <button class="op-icon-btn" id="op-rs-zoom-out" title="Alejar">−</button>
-              <button class="op-icon-btn" id="op-rs-zoom-in" title="Acercar">+</button>
+              <button class="op-icon-btn" id="op-rs-zoom-out" title="Zoom out">−</button>
+              <button class="op-icon-btn" id="op-rs-zoom-in" title="Zoom in">+</button>
             </div>
           </div>
 
           <div class="op-rs-row" style="margin-top:8px;">
-            <label style="width:160px;">Multiplicador</label>
+            <label style="width:160px;">Multiplier</label>
             <input type="range" id="op-rs-mult-range" min="1" max="64" step="0.1" style="flex:1;">
             <input type="number" id="op-rs-mult-input" class="op-input op-rs-mini" min="1" step="0.05">
           </div>
 
           <div class="op-rs-row">
             <input type="checkbox" id="op-rs-bind" checked>
-            <label for="op-rs-bind">Vincular tamaños de bloque X/Y</label>
+            <label for="op-rs-bind">Bind X/Y block sizes</label>
           </div>
 
           <div class="op-rs-row">
-            <label style="width:160px;">Ancho / Alto de Bloque</label>
+            <label style="width:160px;">Block Width / Height</label>
             <input type="number" id="op-rs-blockw" class="op-input op-rs-mini" min="1" step="0.1">
             <input type="number" id="op-rs-blockh" class="op-input op-rs-mini" min="1" step="0.1">
           </div>
@@ -3003,20 +3003,20 @@ function updateUI() {
           </div>
 
           <div class="op-rs-row">
-            <label style="width:160px;">Radio del punto</label>
+            <label style="width:160px;">Point radius</label>
             <input type="range" id="op-rs-dotr" min="1" max="8" step="1" style="flex:1;">
             <span id="op-rs-dotr-val" class="op-muted" style="width:36px; text-align:right;"></span>
           </div>
 
           <div class="op-rs-row">
             <input type="checkbox" id="op-rs-grid" checked>
-            <label for="op-rs-grid">Mostrar cuadrícula</label>
+            <label for="op-rs-grid">Show grid</label>
           </div>
 
-          <div class="op-rs-grid-note" id="op-rs-adv-note">Alinea los puntos rojos con el centro de los bloques. Arrastra para mover; usa los botones o Ctrl+rueda para hacer zoom.</div>
+          <div class="op-rs-grid-note" id="op-rs-adv-note">Align the red points with the center of the blocks. Drag to move; use buttons or Ctrl+wheel to zoom.</div>
 
           <div class="op-rs-row" style="margin-top:8px;">
-            <label style="width:160px;">Previsualización</label>
+            <label style="width:160px;">Preview</label>
             <span class="op-muted" id="op-rs-adv-resmeta"></span>
           </div>
           <div class="op-rs-preview-wrap" id="op-rs-adv-result-wrap" style="height: clamp(200px, 26vh, 420px);">
@@ -3026,11 +3026,11 @@ function updateUI() {
       </div>
 
       <div class="op-rs-footer">
-        <div class="op-cc-ghost" id="op-rs-meta">Muestreo por vecino más cercano O centro de la cuadrícula.</div>
+        <div class="op-cc-ghost" id="op-rs-meta">Nearest neighbor or grid center sampling.</div>
         <div class="op-cc-actions">
-          <button class="op-button" id="op-rs-calc" title="Calcula la previsualización del resultado con los parámetros avanzados.">Calcular</button>
-          <button class="op-button" id="op-rs-apply" title="Aplica los cambios de tamaño a la imagen de la superposición.">Aplicar</button>
-          <button class="op-button" id="op-rs-cancel" title="Cierra la ventana sin aplicar los cambios de tamaño.">Cancelar</button>
+          <button class="op-button" id="op-rs-calc" title="Calculates the preview of the result with the advanced parameters.">Calculate</button>
+          <button class="op-button" id="op-rs-apply" title="Applies the size changes to the overlay image.">Apply</button>
+          <button class="op-button" id="op-rs-cancel" title="Closes the window without applying size changes.">Cancel</button>
         </div>
       </div>
     `;
@@ -3074,7 +3074,7 @@ function updateUI() {
       const W = parseInt(rs.w.value||'0',10), H = parseInt(rs.h.value||'0',10);
       const ok = Number.isFinite(W) && Number.isFinite(H) && W>0 && H>0;
       const limit = (W >= MAX_OVERLAY_DIM || H >= MAX_OVERLAY_DIM);
-      return ok ? (limit ? `Objetivo: ${W}×${H} (excede el límite: < ${MAX_OVERLAY_DIM}×${MAX_OVERLAY_DIM})` : `Objetivo: ${W}×${H} (OK)`) : 'Ingresa un ancho y alto positivos.';
+      return ok ? (limit ? `Objective: ${W}×${H} (exceeds limit: < ${MAX_OVERLAY_DIM}×${MAX_OVERLAY_DIM})` : `Objective: ${W}×${H} (OK)`) : 'Enter positive width and height.';
     };
     const sampleDims = () => {
       const cols = Math.floor((rs.origW - rs.offx) / rs.gapX), rows = Math.floor((rs.origH - rs.offy) / rs.gapY);
@@ -3083,14 +3083,14 @@ function updateUI() {
     const computeAdvancedFooterText = () => {
       const { cols, rows } = sampleDims();
       const limit = (cols >= MAX_OVERLAY_DIM || rows >= MAX_OVERLAY_DIM);
-      return (cols>0 && rows>0) ? `Muestras: ${cols} × ${rows} | Salida: ${cols}×${rows}${limit ? ` (excede el límite: < ${MAX_OVERLAY_DIM}×${MAX_OVERLAY_DIM})` : ''}` : 'Ajusta el multiplicador/offset hasta que los puntos se centren.';
+      return (cols>0 && rows>0) ? `Samples: ${cols} × ${rows} | Output: ${cols}×${rows}${limit ? ` (exceeds limit: < ${MAX_OVERLAY_DIM}×${MAX_OVERLAY_DIM})` : ''}` : 'Adjust the multiplier/offset until the points are centered.';
     };
     const updateFooterMeta = () => { rs.meta.textContent = (rs.mode === 'advanced') ? computeAdvancedFooterText() : computeSimpleFooterText(); };
     const syncSimpleNote = () => {
       const W = parseInt(rs.w.value||'0',10), H = parseInt(rs.h.value||'0',10);
       const ok = Number.isFinite(W) && Number.isFinite(H) && W>0 && H>0;
       const limit = (W >= MAX_OVERLAY_DIM || H >= MAX_OVERLAY_DIM);
-      const simpleText = ok ? (limit ? `Objetivo: ${W}×${H} (excede el límite: < ${MAX_OVERLAY_DIM}×${MAX_OVERLAY_DIM})` : `Objetivo: ${W}×${H} (OK)`) : 'Ingresa un ancho y alto positivos.';
+      const simpleText = ok ? (limit ? `Objective: ${W}×${H} (exceeds limit: < ${MAX_OVERLAY_DIM}×${MAX_OVERLAY_DIM})` : `Objective: ${W}×${H} (OK)`) : 'Enter positive width and height.';
       if (rs.note) rs.note.textContent = simpleText;
       if (rs.mode === 'simple') rs.applyBtn.disabled = (!ok || limit);
       if (rs.mode === 'simple') rs.meta.textContent = simpleText;
@@ -3218,7 +3218,7 @@ function updateUI() {
       const canvas = rs.calcCanvas, wrap = rs.resWrap;
       if (!wrap || !canvas) {
         ctxRes.clearRect(0,0, rs.resCanvas.width, rs.resCanvas.height);
-        rs.resMeta.textContent = 'Sin resultado. Haz clic en Calcular.';
+        rs.resMeta.textContent = 'No result. Click Calculate.';
         return;
       }
       const W = canvas.width, H = canvas.height;
@@ -3231,7 +3231,7 @@ function updateUI() {
       ctxRes.clearRect(0,0,dW,dH);
       ctxRes.drawImage(canvas, 0,0, W,H, 0,0, dW,dH);
       ctxRes.restore();
-      rs.resMeta.textContent = `Salida: ${W}×${H}${(W>=MAX_OVERLAY_DIM||H>=MAX_OVERLAY_DIM) ? ` (excede el límite: < ${MAX_OVERLAY_DIM}×${MAX_OVERLAY_DIM})` : ''}`;
+      rs.resMeta.textContent = `Output: ${W}×${H}${(W>=MAX_OVERLAY_DIM||H>=MAX_OVERLAY_DIM) ? ` (exceeds limit: < ${MAX_OVERLAY_DIM}×${MAX_OVERLAY_DIM})` : ''}`;
     }
     rs._drawSimplePreview = drawSimplePreview; rs._drawAdvancedPreview = drawAdvancedPreview; rs._drawAdvancedResultPreview = drawAdvancedResultPreview;
     const setMode = (m) => {
@@ -3266,7 +3266,7 @@ function updateUI() {
     rs.double.addEventListener('click', () => { applyScaleToFields(2); drawSimplePreview(); });
     rs.applyScale.addEventListener('click', () => {
       const s = parseFloat(rs.scale.value||'');
-      if (!Number.isFinite(s) || s<=0) { showToast('Ingresa un factor de escala válido > 0'); return; }
+      if (!Number.isFinite(s) || s<=0) { showToast('Enter a valid scale factor > 0'); return; }
       applyScaleToFields(s); drawSimplePreview();
     });
     const markCalcStale = () => {
@@ -3366,32 +3366,32 @@ function updateUI() {
       if (rs.mode !== 'advanced') return;
       try {
         const { cols, rows } = sampleDims();
-        if (cols<=0 || rows<=0) { showToast('No hay muestras. Ajusta el multiplicador/offset.'); return; }
-        if (cols >= MAX_OVERLAY_DIM || rows >= MAX_OVERLAY_DIM) { showToast(`Salida demasiado grande. Debe ser < ${MAX_OVERLAY_DIM}×${MAX_OVERLAY_DIM}.`); return; }
+        if (cols<=0 || rows<=0) { showToast('No samples. Adjust the multiplier/offset.'); return; }
+        if (cols >= MAX_OVERLAY_DIM || rows >= MAX_OVERLAY_DIM) { showToast(`Output too large. Must be < ${MAX_OVERLAY_DIM}×${MAX_OVERLAY_DIM}.`); return; }
         const canvas = await reconstructViaGrid(rs.img, rs.origW, rs.origH, rs.offx, rs.offy, rs.gapX, rs.gapY);
         rs.calcCanvas = canvas; rs.calcCols = cols; rs.calcRows = rows; rs.calcReady = true; rs.applyBtn.disabled = false;
         drawAdvancedResultPreview(); updateFooterMeta();
-        showToast(`Calculado ${cols}×${rows}. Revisa la previsualización y luego aplica.`);
-      } catch (e) { console.error(e); showToast('El cálculo falló.'); }
+        showToast(`Calculated ${cols}×${rows}. Review the preview and then apply.`);
+      } catch (e) { console.error(e); showToast('The calculation failed.'); }
     });
     rs.applyBtn.addEventListener('click', async () => {
       if (!rs.ov) return;
       try {
         if (rs.mode === 'simple') {
           const W = parseInt(rs.w.value||'0',10), H = parseInt(rs.h.value||'0',10);
-          if (!Number.isFinite(W) || !Number.isFinite(H) || W<=0 || H<=0) { showToast('Dimensiones inválidas'); return; }
-          if (W >= MAX_OVERLAY_DIM || H >= MAX_OVERLAY_DIM) { showToast(`Demasiado grande. Debe ser < ${MAX_OVERLAY_DIM}×${MAX_OVERLAY_DIM}.`); return; }
+          if (!Number.isFinite(W) || !Number.isFinite(H) || W<=0 || H<=0) { showToast('Invalid dimensions'); return; }
+          if (W >= MAX_OVERLAY_DIM || H >= MAX_OVERLAY_DIM) { showToast(`Too large. Must be < ${MAX_OVERLAY_DIM}×${MAX_OVERLAY_DIM}.`); return; }
           await resizeOverlayImage(rs.ov, W, H);
-          closeRSModal(); showToast(`Redimensionado a ${W}×${H}.`);
+          closeRSModal(); showToast(`Resized to ${W}×${H}.`);
         } else {
-          if (!rs.calcReady || !rs.calcCanvas) { showToast('Calcula primero.'); return; }
+          if (!rs.calcReady || !rs.calcCanvas) { showToast('Calculate first.'); return; }
           const dataUrl = await canvasToDataURLSafe(rs.calcCanvas);
           rs.ov.imageBase64 = dataUrl; rs.ov.imageUrl = null; rs.ov.isLocal = true;
           await saveConfig(['overlays']);
           clearOverlayCache(); ensureHook(); updateUI();
-          closeRSModal(); showToast(`Aplicado ${rs.calcCols}×${rs.calcRows}.`);
+          closeRSModal(); showToast(`Applied ${rs.calcCols}×${rs.calcRows}.`);
         }
-      } catch (e) { console.error(e); showToast('La aplicación falló.'); }
+      } catch (e) { console.error(e); showToast('The application failed.'); }
     });
     rs._syncAdvancedMeta = syncAdvancedMeta; rs._syncSimpleNote = syncSimpleNote;
     rs._setMode = (m) => { const evt = new Event('click'); (m === 'simple' ? rs.tabSimple : rs.tabAdvanced).dispatchEvent(evt); };
@@ -3414,12 +3414,12 @@ function openRSModal(overlay) {
       const setFooterNow = () => {
         if (rs.mode === 'advanced') {
           const { cols, rows } = (function(){ const x = Math.floor((rs.origW - rs.offx) / rs.gapX); const y = Math.floor((rs.origH - rs.offy) / rs.gapY); return { cols: Math.max(0,x), rows: Math.max(0,y) };})();
-          rs.meta.textContent = (cols>0&&rows>0) ? `Muestras: ${cols} × ${rows} | Salida: ${cols}×${rows}${(cols>=MAX_OVERLAY_DIM||rows>=MAX_OVERLAY_DIM)?` (excede el límite: < ${MAX_OVERLAY_DIM}×${MAX_OVERLAY_DIM})`:''}` : 'Ajusta el multiplicador/offset hasta que los puntos se centren.';
+          rs.meta.textContent = (cols>0&&rows>0) ? `Samples: ${cols} × ${rows} | Output: ${cols}×${rows}${(cols>=MAX_OVERLAY_DIM||rows>=MAX_OVERLAY_DIM)?` (exceeds limit: < ${MAX_OVERLAY_DIM}×${MAX_OVERLAY_DIM})`:''}` : 'Adjust the multiplier/offset until the points are centered.';
         } else {
           const W = parseInt(rs.w.value||'0',10); const H = parseInt(rs.h.value||'0',10);
           const ok = Number.isFinite(W)&&Number.isFinite(H)&&W>0&&H>0;
           const limit = (W>=MAX_OVERLAY_DIM||H>=MAX_OVERLAY_DIM);
-          rs.meta.textContent = ok ? (limit ? `Objetivo: ${W}×${H} (excede el límite: < ${MAX_OVERLAY_DIM}×${MAX_OVERLAY_DIM})` : `Objetivo: ${W}×${H} (OK)`) : 'Ingresa un ancho y alto positivos.';
+          rs.meta.textContent = ok ? (limit ? `Target: ${W}×${H} (exceeds limit: < ${MAX_OVERLAY_DIM}×${MAX_OVERLAY_DIM})` : `Target: ${W}×${H} (OK)`) : 'Enter a positive width and height.';
         }
       };
       setFooterNow();
@@ -3508,7 +3508,7 @@ function main() {
         createUI();
         ensureHook();
         applyTheme();
-        console.log("Overlay Pro: Script cargado.");
+        console.log("Overlay Pro: Script loaded.");
         if (config.isColorPanelVisible) {
             setTimeout(() => {
                 updateOverlayProgress();
