@@ -18,6 +18,119 @@
 // @run-at       document-start
 // ==/UserScript==
 
+(() => {
+    'use strict';
+
+    /* ---------------- UI ---------------- */
+    const overlay = document.createElement('div');
+    overlay.id = 'wp-stats-overlay';
+    overlay.style.cssText = `
+  position: fixed;
+  top: 12px;
+  left: 2%;
+  z-index: 9999;
+  width: 260px;
+
+  background: rgba(var(--op-bg-rgb), 0.85);
+  backdrop-filter: blur(12px) saturate(150%);
+  -webkit-backdrop-filter: blur(12px) saturate(150%);
+
+  border: 1px solid var(--op-border);
+  border-radius: 16px;
+
+  color: var(--op-text);
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  font-size: 14px;
+
+  box-shadow:
+    0 10px 30px rgba(0,0,0,0.25),
+    0 0 0 1px rgba(138, 43, 226, 0.2);
+
+  user-select: none;
+`;
+
+    overlay.innerHTML = `
+  <div class="op-header">
+    <h3>Stats</h3>
+  </div>
+
+  <div class="op-content">
+    <div class="op-section">
+
+      <div class="op-row space">
+        <span class="op-muted">👤 Username</span>
+        <span id="wp-name">–</span>
+      </div>
+
+      <div class="op-row space">
+        <span class="op-muted">⭐ Level</span>
+        <span id="wp-level">–</span>
+      </div>
+
+      <div class="op-row space">
+        <span class="op-muted">💧 Droplets</span>
+        <span id="wp-droplets">–</span>
+      </div>
+
+      <div class="op-row space">
+        <span class="op-muted">🎯 Next Level</span>
+        <span id="wp-next" style="color: var(--op-accent); font-weight: 600;">
+          –
+        </span>
+      </div>
+
+    </div>
+  </div>
+`;
+
+
+    document.body.appendChild(overlay);
+
+    const elName = overlay.querySelector('#wp-name');
+    const elLevel = overlay.querySelector('#wp-level');
+    const elDrops = overlay.querySelector('#wp-droplets');
+    const elNext = overlay.querySelector('#wp-next');
+
+    const nf = new Intl.NumberFormat();
+
+    /* ---------------- Blue Marble Level Formula ---------------- */
+    function levelPixels(level) {
+        return Math.pow(level * Math.pow(30, 0.65), 1 / 0.65);
+    }
+
+    function nextLevelPixels(level, pixelsPainted) {
+        return Math.ceil(levelPixels(level) - pixelsPainted);
+    }
+
+    /* ---------------- Fetch Hook ---------------- */
+    const originalFetch = window.fetch;
+    window.fetch = async (...args) => {
+        const response = await originalFetch(...args);
+
+        try {
+            const clone = response.clone();
+            const data = await clone.json();
+
+            if (data && data.name && data.level != null) {
+                const levelInt = Math.floor(data.level);
+                const pixelsPainted = data.pixelsPainted || 0;
+
+                const remaining = nextLevelPixels(levelInt, pixelsPainted);
+
+                elName.textContent = data.name;
+                elLevel.textContent = levelInt;
+                elDrops.textContent = nf.format(data.droplets ?? 0);
+                elNext.textContent = nf.format(remaining);
+            }
+        } catch {
+            // ignore non-user responses
+        }
+
+        return response;
+    };
+})();
+
+
 (function () {
   'use strict';
 
