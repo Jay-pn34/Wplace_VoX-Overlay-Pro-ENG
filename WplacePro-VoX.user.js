@@ -21,79 +21,10 @@
 (() => {
     'use strict';
 
-    /* ---------------- UI ---------------- */
-    const overlay = document.createElement('div');
-    overlay.id = 'wp-stats-overlay';
-    overlay.style.cssText = `
-  position: fixed;
-  top: 12px;
-  left: 2%;
-  z-index: 9999;
-  width: 260px;
-
-  background: rgba(var(--op-bg-rgb), 0.85);
-  backdrop-filter: blur(12px) saturate(150%);
-  -webkit-backdrop-filter: blur(12px) saturate(150%);
-
-  border: 1px solid var(--op-border);
-  border-radius: 16px;
-
-  color: var(--op-text);
-  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
-  font-size: 14px;
-
-  box-shadow:
-    0 10px 30px rgba(0,0,0,0.25),
-    0 0 0 1px rgba(138, 43, 226, 0.2);
-
-  user-select: none;
-`;
-
-    overlay.innerHTML = `
-  <div class="op-header">
-    <h3>Stats</h3>
-  </div>
-
-  <div class="op-content">
-    <div class="op-section">
-
-      <div class="op-row space">
-        <span class="op-muted">👤 Username</span>
-        <span id="wp-name">–</span>
-      </div>
-
-      <div class="op-row space">
-        <span class="op-muted">⭐ Level</span>
-        <span id="wp-level">–</span>
-      </div>
-
-      <div class="op-row space">
-        <span class="op-muted">💧 Droplets</span>
-        <span id="wp-droplets">–</span>
-      </div>
-
-      <div class="op-row space">
-        <span class="op-muted">🎯 Next Level</span>
-        <span id="wp-next" style="color: var(--op-accent); font-weight: 600;">
-          –
-        </span>
-      </div>
-
-    </div>
-  </div>
-`;
-
-
-    document.body.appendChild(overlay);
-
-    const elName = overlay.querySelector('#wp-name');
-    const elLevel = overlay.querySelector('#wp-level');
-    const elDrops = overlay.querySelector('#wp-droplets');
-    const elNext = overlay.querySelector('#wp-next');
-
+    let statEls = null;
+    let lastUserData = null;
     const nf = new Intl.NumberFormat();
 
-    /* ---------------- Blue Marble Level Formula ---------------- */
     function levelPixels(level) {
         return Math.pow(level * Math.pow(30, 0.65), 1 / 0.65);
     }
@@ -102,8 +33,83 @@
         return Math.ceil(levelPixels(level) - pixelsPainted);
     }
 
+    function ensureStatElements() {
+        if (
+            statEls &&
+            document.body.contains(statEls.name) &&
+            document.body.contains(statEls.level) &&
+            document.body.contains(statEls.drops) &&
+            document.body.contains(statEls.next)
+        ) {
+            return statEls;
+        }
+
+        const nameEl = document.getElementById('wp-name');
+        const levelEl = document.getElementById('wp-level');
+        const dropsEl = document.getElementById('wp-droplets');
+        const nextEl = document.getElementById('wp-next');
+
+        if (nameEl && levelEl && dropsEl && nextEl) {
+            statEls = {
+                name: nameEl,
+                level: levelEl,
+                drops: dropsEl,
+                next: nextEl,
+            };
+        }
+
+        return statEls;
+    }
+
+    function setDropletColor(value, el) {
+        if (!el) return;
+        if (value >= 2000) {
+            el.style.color = '#00ff00'; // green
+        } else if (value >= 500) {
+            el.style.color = '#ffff00'; // yellow
+        } else {
+            el.style.color = '';
+        }
+    }
+    // expose for other scopes
+    window.__wpSetDropletColor = setDropletColor;
+
+    function applyStats(data) {
+        if (!data) return;
+        const els = ensureStatElements();
+        if (els) {
+            const levelInt = Math.floor(data.level);
+            const pixelsPainted = data.pixelsPainted || 0;
+            const remaining = nextLevelPixels(levelInt, pixelsPainted);
+
+            els.name.textContent = data.name;
+            els.level.textContent = levelInt;
+            const droplets = data.droplets ?? 0;
+            els.drops.textContent = nf.format(droplets);
+            setDropletColor(droplets, els.drops);
+            els.next.textContent = nf.format(remaining);
+            lastUserData = null;
+        } else {
+            lastUserData = data;
+        }
+    }
+
+    const statsObserver = new MutationObserver(() => {
+        if (ensureStatElements() && lastUserData) {
+            applyStats(lastUserData);
+        } else if (ensureStatElements()) {
+            statsObserver.disconnect();
+        }
+    });
+    statsObserver.observe(document.documentElement || document.body, {
+        childList: true,
+        subtree: true,
+    });
+
     /* ---------------- Fetch Hook ---------------- */
     const originalFetch = window.fetch;
+    // expose native fetch for later consumers before we wrap it
+    if (!window.__wpBaseFetch) window.__wpBaseFetch = originalFetch;
     window.fetch = async (...args) => {
         const response = await originalFetch(...args);
 
@@ -111,17 +117,7 @@
             const clone = response.clone();
             const data = await clone.json();
 
-            if (data && data.name && data.level != null) {
-                const levelInt = Math.floor(data.level);
-                const pixelsPainted = data.pixelsPainted || 0;
-
-                const remaining = nextLevelPixels(levelInt, pixelsPainted);
-
-                elName.textContent = data.name;
-                elLevel.textContent = levelInt;
-                elDrops.textContent = nf.format(data.droplets ?? 0);
-                elNext.textContent = nf.format(remaining);
-            }
+            if (data && data.name && data.level != null) applyStats(data);
         } catch {
             // ignore non-user responses
         }
@@ -137,7 +133,7 @@
   const TILE_SIZE = 1000;
   const MAX_OVERLAY_DIM = 3000;
   const MINIFY_SCALE = 3;
-  const NATIVE_FETCH = window.fetch;
+  const NATIVE_FETCH = window.__wpBaseFetch || window.fetch;
   const tileDataCache = new Map();
 
   const gmGet = (key, def) => {
@@ -705,6 +701,36 @@ function showToast(message, duration = 3000) {
   }
   function ensureHook() { if (overlaysNeedingHook()) attachHook(); else detachHook(); }
 
+  async function maybeApplyStats(response) {
+    try {
+      const clone = response.clone();
+      const data = await clone.json();
+      if (!data || data.name == null || data.level == null) return;
+
+      const level = Math.floor(data.level);
+      const pixelsPainted = data.pixelsPainted || 0;
+      const remaining = Math.ceil(
+        Math.pow(level * Math.pow(30, 0.65), 1 / 0.65) - pixelsPainted
+      );
+
+      const nameEl = document.getElementById('wp-name');
+      const levelEl = document.getElementById('wp-level');
+      const dropsEl = document.getElementById('wp-droplets');
+      const nextEl = document.getElementById('wp-next');
+      if (!nameEl || !levelEl || !dropsEl || !nextEl) return;
+
+      const nfLocal = new Intl.NumberFormat();
+      const droplets = data.droplets ?? 0;
+
+      nameEl.textContent = data.name;
+      levelEl.textContent = level;
+      dropsEl.textContent = nfLocal.format(droplets);
+      nextEl.textContent = nfLocal.format(remaining);
+      const setColorFn = window.__wpSetDropletColor || (typeof setDropletColor === 'function' ? setDropletColor : null);
+      if (setColorFn) setColorFn(droplets, dropsEl);
+    } catch {}
+  }
+
   function attachHook() {
     if (hookInstalled) return;
     const originalFetch = NATIVE_FETCH;
@@ -772,6 +798,7 @@ function showToast(message, duration = 3000) {
                     console.error("Overlay Pro: Error invalidating cache after pixel placement.", e);
                 }
             }
+            await maybeApplyStats(response);
             return response;
         }
 
@@ -779,9 +806,9 @@ function showToast(message, duration = 3000) {
         if (tileMatch) {
             try {
                 const response = await originalFetch(input, init);
-                if (!response.ok) return response;
+                if (!response.ok) { await maybeApplyStats(response); return response; }
                 const ct = (response.headers.get('Content-Type') || '').toLowerCase();
-                if (!ct.includes('image')) return response;
+                if (!ct.includes('image')) { await maybeApplyStats(response); return response; }
                 let originalBlob = await response.blob();
                 if (originalBlob.size > 15 * 1024 * 1024) return new Response(originalBlob);
                 const originalImage = await blobToImage(originalBlob);
@@ -820,13 +847,18 @@ function showToast(message, duration = 3000) {
                 const headers = new Headers(response.headers);
                 headers.set('Content-Type', 'image/png');
                 headers.delete('Content-Length');
+                await maybeApplyStats(response);
                 return new Response(finalBlob, { status: response.status, statusText: response.statusText, headers });
             } catch (e) {
                 if (e.name !== 'AbortError') console.error("Overlay Pro: Error processing tile", e);
-                return originalFetch(input, init);
+                const resp = await originalFetch(input, init);
+                await maybeApplyStats(resp);
+                return resp;
             }
         }
-        return originalFetch(input, init);
+        const resp = await originalFetch(input, init);
+        await maybeApplyStats(resp);
+        return resp;
     };
     page.fetch = hookedFetch;
     window.fetch = hookedFetch;
@@ -1240,13 +1272,13 @@ function injectStyles() {
         color: var(--op-accent);
       }
       @media (max-width: 480px) {
-       #op-color-analysis-panel {
-       width: 90vw;
-       max-width: 280px;
-       left: auto;
-       right: 5vw;
+      #op-color-analysis-panel {
+      width: 90vw;
+      max-width: 280px;
+      left: auto;
+      right: 5vw;
       }
-     }
+    }
 `;
     document.head.appendChild(style);
 }
@@ -1270,6 +1302,24 @@ panel.innerHTML = `
     </div>
   </div>
       <div class="op-content" id="op-content">
+        <div class="op-section" id="op-stats-section">
+          <div class="op-row space">
+            <span class="op-muted">👤 Username</span>
+            <span id="wp-name">–</span>
+          </div>
+          <div class="op-row space">
+            <span class="op-muted">⭐ Level</span>
+            <span id="wp-level">–</span>
+          </div>
+          <div class="op-row space">
+            <span class="op-muted">💧 Droplets</span>
+            <span id="wp-droplets">–</span>
+          </div>
+          <div class="op-row space">
+            <span class="op-muted">🎯 Next Level</span>
+            <span id="wp-next" style="color: var(--op-accent); font-weight: 600;">–</span>
+          </div>
+        </div>
         <div class="op-global-controls">
             <button class="op-button" id="op-show-overlay-toggle">Overlay: ON</button>
             <button class="op-button" id="op-mode-toggle">Mode: Minify</button>
@@ -1351,12 +1401,12 @@ panel.innerHTML = `
                     </div>
                     <div>
                         <div class="op-row space">
-                         <span class="op-muted" id="op-offset-indicator">Offset X 0, Y 0</span>
+                        <span class="op-muted" id="op-offset-indicator">Offset X 0, Y 0</span>
                           <div class="op-nudge-controls" style="text-align: right;">
                             <button class="op-icon-btn" id="op-nudge-left" title="Left">←</button>
                             <button class="op-icon-btn" id="op-nudge-down" title="Down">↓</button>
                             <button class="op-icon-btn" id="op-nudge-up" title="Up">↑</button>
-                           <button class="op-icon-btn" id="op-nudge-right" title="Right">→</button>
+                          <button class="op-icon-btn" id="op-nudge-right" title="Right">→</button>
                         </div>
                       </div>
                     </div>
@@ -1377,22 +1427,22 @@ panel.innerHTML = `
                     <div class="op-row space" style="margin-top: 8px;">
                         <span id="op-copy-info" class="op-muted" style="text-align:center; width:100%;"></span>
                     </div>
-                     <div class="op-section" style="margin-top: 8px;">
-                         <div class="op-row space">
-                             <span>Fine Adjustment:</span>
-                             <div class="op-row">
+                    <div class="op-section" style="margin-top: 8px;">
+                        <div class="op-row space">
+                            <span>Fine Adjustment:</span>
+                            <div class="op-row">
                                 <input type="radio" id="op-nudge-target-a" name="op-nudge-target" value="A" checked>
                                 <label for="op-nudge-target-a">Point A</label>
                                 <input type="radio" id="op-nudge-target-b" name="op-nudge-target" value="B">
                                 <label for="op-nudge-target-b">Point B</label>
-                             </div>
-                         </div>
-                         <div class="op-nudge-controls" style="text-align: right;">
+                            </div>
+                        </div>
+                        <div class="op-nudge-controls" style="text-align: right;">
                             <button class="op-icon-btn" id="op-nudge-copy-left" title="Left">←</button>
                             <button class="op-icon-btn" id="op-nudge-copy-down" title="Down">↓</button>
                             <button class="op-icon-btn" id="op-nudge-copy-up" title="Up">↑</button>
                             <button class="op-icon-btn" id="op-nudge-copy-right" title="Right">→</button>
-                         </div>
+                        </div>
                     </div>
                     <div class="op-row space" style="margin-top: 4px;">
                         <button class="op-button" id="op-copy-preview-toggle" style="flex:1;">Visualize Area</button>
@@ -1410,7 +1460,6 @@ panel.innerHTML = `
     `;
 
     document.body.appendChild(panel);
-
     const settingsModal = document.createElement('div');
     settingsModal.id = 'op-main-settings-modal';
     settingsModal.className = 'op-modal';
@@ -1435,8 +1484,8 @@ panel.innerHTML = `
                 <code>@srcratier</code>
             </div>
         </div>
-         <button class="op-button op-show-donators">❤️ View Donators</button>
-         <div class="op-donators-list-wrap"></div>
+        <button class="op-button op-show-donators">❤️ View Donators</button>
+        <div class="op-donators-list-wrap"></div>
     `;
     document.body.appendChild(settingsModal);
 
@@ -1519,8 +1568,8 @@ panel.innerHTML = `
                 <code>@srcratier</code>
             </div>
         </div>
-         <button class="op-button op-show-donators">❤️ View Acknowledgements</button>
-         <div class="op-donators-list-wrap"></div>
+        <button class="op-button op-show-donators">❤️ View Acknowledgements</button>
+        <div class="op-donators-list-wrap"></div>
     `;
     document.body.appendChild(caSettingsModal);
 
