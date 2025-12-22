@@ -69,6 +69,11 @@ Select the **Mode** that best fits your design:
   - *Behind/Above*: Displays the image behind or in front of the canvas.
   - *Original*: Hides the overlay to see the real map.
 - **Show Errors: ON/OFF** → Highlights pixels that do not match your design in red.
+- **Player Stats (Username / Level / Droplets / Next Level)** → Automatically reads your account data from Wplace and shows:
+  - **Droplets** with dynamic color based on amount:
+    - 0–499: default text color
+    - 500–1999: yellow (high droplets)
+    - 2000+: green (very high droplets)
 
 💡 **Tip:** Adjust opacity, position, or filters, then move the map slightly or paint a pixel to see changes. No reload required.
 
