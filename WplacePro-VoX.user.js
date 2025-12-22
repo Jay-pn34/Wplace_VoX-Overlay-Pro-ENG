@@ -63,7 +63,9 @@
 
     function setDropletColor(value, el) {
         if (!el) return;
-        if (value >= 2000) {
+        if (value >= 20000) {
+          el.style.color = '#ff0000'; // red
+        }else if (value >= 2000) {
             el.style.color = '#00ff00'; // green
         } else if (value >= 500) {
             el.style.color = '#ffff00'; // yellow
