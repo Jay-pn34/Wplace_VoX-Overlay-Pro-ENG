@@ -128,7 +128,6 @@
     };
 })();
 
-
 (function () {
   'use strict';
 
@@ -246,10 +245,6 @@
     // ------------------------------- DONORS LIST ----------------------------------------
 
 const DONATORS = [
-
-{ name: "kleyder1205 ", contribution: "- Donated 5 USD :D ❤️" },
-{ name: "Nuntius ", contribution: "- Donated 5 USD :D ❤️" },
-{ name: "espressos work ", contribution: "- Donated 5 USD :D ❤️" },
 
 ];
 
@@ -1472,19 +1467,12 @@ panel.innerHTML = `
             <button class="op-button" id="op-theme-toggle">Light / Dark</button>
         </div>
         <div class="op-settings-row">
-            <label>Panel Transparency</label>
+            <span>Panel Transparency</span>
+            <span id="op-panel-alpha-value" class="op-muted"></span>
         </div>
-        <input type="range" id="op-panel-alpha-slider" min="0.4" max="1" step="0.05">
+        <input type="range" id="op-panel-alpha-slider" min="0.2" max="1" step="0.05">
         <div class="op-donation-section">
             <p>This project is free, but I would appreciate a donation to support development ❤️</p>
-            <div class="op-donation-info">
-                <span>Binance ID:</span>
-                <code>851390091</code>
-            </div>
-            <div class="op-donation-info">
-                <span>PayPal:</span>
-                <code>@srcratier</code>
-            </div>
         </div>
         <button class="op-button op-show-donators">❤️ View Donators</button>
         <div class="op-donators-list-wrap"></div>
@@ -1557,18 +1545,13 @@ panel.innerHTML = `
 
         </div>
         <hr style="border-color: var(--op-border); margin: 12px 0;">
-        <label>Panel Transparency</label>
+        <div class="op-settings-row">
+            <span>Panel Transparency</span>
+            <span id="op-ca-alpha-value" class="op-muted"></span>
+        </div>
         <input type="range" id="op-ca-alpha-slider" min="0.2" max="1" step="0.05">
         <div class="op-donation-section">
             <p>This project is free, but I would appreciate a donation to support the project ❤️</p>
-            <div class="op-donation-info">
-                <span>Binance ID:</span>
-                <code>851390091</code>
-            </div>
-            <div class="op-donation-info">
-                <span>PayPal:</span>
-                <code>@srcratier</code>
-            </div>
         </div>
         <button class="op-button op-show-donators">❤️ View Acknowledgements</button>
         <div class="op-donators-list-wrap"></div>
@@ -2182,6 +2165,13 @@ applyTheme();
     const mainSettingsModal = $('op-main-settings-modal');
     const mainBackdrop = $('op-main-settings-backdrop');
     const panelAlphaSlider = $('op-panel-alpha-slider');
+    const panelAlphaValue = $('op-panel-alpha-value');
+
+    const refreshPanelAlphaValue = () => {
+        if (panelAlphaValue) {
+            panelAlphaValue.textContent = `${Math.round(config.panelAlpha * 100)}%`;
+        }
+    };
 
     const toggleMainSettingsModal = (show) => {
         mainSettingsModal.classList.toggle('show', show);
@@ -2196,9 +2186,11 @@ applyTheme();
     mainBackdrop.addEventListener('click', () => toggleMainSettingsModal(false));
 
     panelAlphaSlider.value = config.panelAlpha;
+    refreshPanelAlphaValue();
     panelAlphaSlider.addEventListener('input', (e) => {
         config.panelAlpha = parseFloat(e.target.value);
         document.getElementById('overlay-pro-panel').style.setProperty('--op-panel-alpha', config.panelAlpha);
+        refreshPanelAlphaValue();
         updateUI();
     });
     panelAlphaSlider.addEventListener('change', () => {
@@ -2209,6 +2201,10 @@ applyTheme();
     const caSettingsModal = $('op-ca-settings-modal');
     const caBackdrop = $('op-ca-settings-backdrop');
     const caAlphaSlider = $('op-ca-alpha-slider');
+    const caAlphaValue = $('op-ca-alpha-value');
+    const refreshCaAlphaValue = () => {
+        if (caAlphaValue) caAlphaValue.textContent = `${Math.round(config.colorPanelAlpha * 100)}%`;
+    };
     const caSortToggle = $('op-ca-sort-toggle');
 
     const toggleCaSettingsModal = (show) => {
@@ -2224,8 +2220,10 @@ applyTheme();
     caBackdrop.addEventListener('click', () => toggleCaSettingsModal(false));
 
     caAlphaSlider.value = config.colorPanelAlpha;
+    refreshCaAlphaValue();
     caAlphaSlider.addEventListener('input', (e) => {
         config.colorPanelAlpha = parseFloat(e.target.value);
+        refreshCaAlphaValue();
         updateUI();
     });
     caAlphaSlider.addEventListener('change', () => {
@@ -2662,6 +2660,7 @@ function updateUI() {
 
     panel.style.setProperty('--op-bg-rgb', mainRgb);
     panel.style.setProperty('--op-panel-alpha', config.panelAlpha);
+    if (typeof refreshPanelAlphaValue === 'function') refreshPanelAlphaValue();
 
     const content = $('op-content');
     const toggle = $('op-panel-toggle');
@@ -2716,6 +2715,7 @@ function updateUI() {
 
         colorPanel.style.setProperty('--op-bg-rgb', mainRgb);
         colorPanel.style.background = `rgba(${mainRgb}, ${config.colorPanelAlpha})`;
+        if (typeof refreshCaAlphaValue === 'function') refreshCaAlphaValue();
         const caContent = colorPanel.querySelector('.op-ca-list');
         const caFooter = colorPanel.querySelector('.op-ca-footer');
         const caToggleBtn = colorPanel.querySelector('#op-ca-toggle-collapse');
@@ -2836,7 +2836,7 @@ function updateUI() {
 
     cc.realtimeBtn.addEventListener('click', async () => {
       cc.realtime = !cc.realtime;
-      cc.realtimeBtn.textContent = `En vivo: ${cc.realtime ? 'ON' : 'OFF'}`;
+      cc.realtimeBtn.textContent = `Live: ${cc.realtime ? 'ON' : 'OFF'}`;
       cc.realtimeBtn.classList.toggle('op-danger', cc.realtime);
       config.ccRealtime = cc.realtime; await saveConfig(['ccRealtime']);
       if (cc.realtime && cc.isStale) recalcNow();
@@ -2903,7 +2903,7 @@ function updateUI() {
     document.body.classList.add('op-scroll-lock');
     cc.zoom = Number(config.ccZoom) || 1.0;
     cc.realtime = !!config.ccRealtime;
-    cc.realtimeBtn.textContent = `En vivo: ${cc.realtime ? 'ON' : 'OFF'}`;
+    cc.realtimeBtn.textContent = `Live: ${cc.realtime ? 'ON' : 'OFF'}`;
     cc.realtimeBtn.classList.toggle('op-danger', cc.realtime);
     const img = new Image();
     img.onload = () => {
