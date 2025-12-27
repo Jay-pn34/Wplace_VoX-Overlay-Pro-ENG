@@ -29,6 +29,7 @@ To use the script, you need a browser extension called **Tampermonkey**.
    **Note for Mobile:** Edge users can install the extension directly from the browser’s "Extensions" menu.
 2. **Install the Script:**
    The script updates automatically.
+   
    [**⬇️ Click here to install the English version (v5.0.4)**](https://raw.githubusercontent.com/Jay-pn34/Wplace_VoX-Overlay-Pro-ENG/main/WplacePro-VoX.user.js)
 
    Tampermonkey will prompt you to confirm. Click "Install".
