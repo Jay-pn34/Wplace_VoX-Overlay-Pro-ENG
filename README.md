@@ -3,6 +3,7 @@
 **Based on shinkonet’s code, adapted and improved for Wplace.**
 
 Welcome to **VoX - Overlay Pro v5.0.4 (English Version)**!
+
 This guide will help you master all the tools that the script makes available. The engine has been updated for better performance and ease of use.
 
 ---
