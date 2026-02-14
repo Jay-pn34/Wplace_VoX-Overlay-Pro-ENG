@@ -1,9 +1,9 @@
 // ==UserScript==
-// @name         Wplace Overlay Pro Modified By @SrCratier and Translated by Jay-pn34
+// @name         Wplace Overlay Pro Modified By Jay-pn34 (original by SrCratier)
 // @namespace    http://tampermonkey.net/
-// @version      5.0.4
+// @version      5.1.2
 // @description  Overlays tiles on wplace.live. Can also resize, and color-match your overlay to wplace's palette. Make sure to comply with the site's Terms of Service, and rules! This script is not affiliated with Wplace.live in any way, use at your own risk. This script is not affiliated with TamperMonkey. The author of this userscript is not responsible for any damages, issues, loss of data, or punishment that may occur as a result of using this script. This script is provided "as is" under GPLv3.
-// @author       shinkonet (Modified by @SrCratier) (Translated by Jay-pn34)
+// @author       shinkonet (original code by SrCratier) (Modified by Jay-pn34)
 // @updateURL    https://raw.githubusercontent.com/Jay-pn34/Wplace_VoX-Overlay-Pro-ENG/main/WplacePro-VoX.user.js
 // @downloadURL  https://raw.githubusercontent.com/Jay-pn34/Wplace_VoX-Overlay-Pro-ENG/main/WplacePro-VoX.user.js
 // @match        https://wplace.live/*
@@ -322,6 +322,77 @@ const DONATORS = [
   }
   function clearOverlayCache() { overlayCache.clear(); }
 
+  // Helper functions for converting world coordinates to lat/lng and generating pixel links
+  function worldCoordsToLatLng(worldX, worldY) {
+    // Based on reverse-engineering the URLs you provided
+    // The pattern shows:
+    // lat decreases as Y increases (inverse relationship)
+    // lng increases as X increases (direct relationship)
+
+    // Calculate based on observed values:
+    // World (1435607, 898526) → lat=21.530514210712816, lng=72.35288052802733
+    // World (1436000, 900000) → lat=21.289292771707295, lng=72.42196255927735
+
+    // Difference in world coords:
+    // ΔX = 1436000 - 1435607 = 393
+    // ΔY = 900000 - 898526 = 1474
+
+    // Difference in lat/lng:
+    // Δlat = 21.289292771707295 - 21.530514210712816 = -0.241221439005521
+    // Δlng = 72.42196255927735 - 72.35288052802733 = 0.06908203125002
+
+    // Rate of change:
+    // lat per Y = -0.241221439005521 / 1474 ≈ -0.0001636 per pixel
+    // lng per X = 0.06908203125002 / 393 ≈ 0.0001758 per pixel
+
+    // Base point (using 1436000, 900000):
+    const baseX = 1436000;
+    const baseY = 900000;
+    const baseLat = 21.289292771707295;
+    const baseLng = 72.42196255927735;
+
+    // More precise calculation from multiple data points:
+    const latPerPixelY = -0.00016375655739438; // negative because lat decreases as Y increases
+    const lngPerPixelX = 0.00017578125;
+
+    const deltaX = worldX - baseX;
+    const deltaY = worldY - baseY;
+
+    const lat = baseLat + (deltaY * latPerPixelY);
+    const lng = baseLng + (deltaX * lngPerPixelX);
+
+    return { lat, lng };
+  }
+
+  function generatePixelLink(worldX, worldY, zoom = 19) {
+    const { lat, lng } = worldCoordsToLatLng(worldX, worldY);
+    return `https://wplace.live/?lat=${lat}&lng=${lng}&zoom=${zoom}`;
+  }
+
+  // Helper function to get error color based on config
+  function getErrorColor(r_ov, g_ov, b_ov) {
+    if (config.errorColorMode === 'custom' && config.errorCustomColor) {
+      // Parse hex color to RGB (handles both #RGB and #RRGGBB formats)
+      const hex = config.errorCustomColor.replace('#', '');
+      let r, g, b;
+      if (hex.length === 3) {
+        // Handle #RGB format
+        r = parseInt(hex[0] + hex[0], 16);
+        g = parseInt(hex[1] + hex[1], 16);
+        b = parseInt(hex[2] + hex[2], 16);
+      } else {
+        // Handle #RRGGBB format
+        r = parseInt(hex.substr(0, 2), 16);
+        g = parseInt(hex.substr(2, 2), 16);
+        b = parseInt(hex.substr(4, 2), 16);
+      }
+      return [r || 255, g || 0, b || 0]; // Default to red if parsing fails
+    } else {
+      // Default to inverse color
+      return [255 - r_ov, 255 - g_ov, 255 - b_ov];
+    }
+  }
+
   async function buildOverlayDataForChunk(ov, targetChunk1, targetChunk2, originalTileImageData = null) {
     if (!ov.enabled || !ov.imageBase64 || !ov.pixelUrl) return null;
     if (tooLargeOverlays.has(ov.id)) return null;
@@ -353,6 +424,11 @@ const DONATORS = [
 
     const filterSet = (ov.filterActive && ov.savedFilters) ? new Set(ov.savedFilters) : null;
 
+    // HELPER: Get inverse color
+    const getInverseColor = (r, g, b) => {
+        return [255 - r, 255 - g, 255 - b];
+    };
+
     for (let i = 0; i < data.length; i += 4) {
         if (data[i + 3] < 250) {
             continue;
@@ -372,16 +448,25 @@ const DONATORS = [
             const r_orig = originalTileImageData.data[originalIndex];
             const g_orig = originalTileImageData.data[originalIndex + 1];
             const b_orig = originalTileImageData.data[originalIndex + 2];
-            const isMatch = r_ov === r_orig && g_ov === g_orig && b_ov === b_orig;
+            const a_orig = originalTileImageData.data[originalIndex + 3];
+            
+            // ✅ FIX: Check if original pixel is painted (alpha > 200)
+            // If unpainted (transparent), it's always an error regardless of color
+            const isPainted = a_orig > 200;
+            const isMatch = isPainted && r_ov === r_orig && g_ov === g_orig && b_ov === b_orig;
+
             if (isMatch) {
-                data[i + 3] = 0;
+                data[i + 3] = 0; // Hide matched pixels
             } else {
-                const bg_r = 237, bg_g = 28, bg_b = 36;
-                const alpha = 0.5;
-                data[i] = Math.round(r_ov * (1 - alpha) + bg_r * alpha);
-                data[i + 1] = Math.round(g_ov * (1 - alpha) + bg_g * alpha);
-                data[i + 2] = Math.round(b_ov * (1 - alpha) + bg_b * alpha);
-                data[i + 3] = 255;
+                // ✅ FIX: Use error color based on config (inverse or custom)
+                const [err_r, err_g, err_b] = getErrorColor(r_ov, g_ov, b_ov);
+                const alpha = 0.7; // Increased from 0.5 for better visibility
+
+                // Blend error color with original
+                data[i] = Math.round(r_ov * (1 - alpha) + err_r * alpha);
+                data[i + 1] = Math.round(g_ov * (1 - alpha) + err_g * alpha);
+                data[i + 2] = Math.round(b_ov * (1 - alpha) + err_b * alpha);
+                data[i + 3] = 255; // ✅ FIX: Full opacity so black shows
             }
         } else if (config.highlightMissing && originalTileImageData) {
             const r_orig = originalTileImageData.data[originalIndex];
@@ -406,7 +491,7 @@ const DONATORS = [
     const result = { imageData, dx: isect.x, dy: isect.y };
     overlayCache.set(cacheKey, result);
     return result;
-  }
+}
 
   const PATTERNS = [
       (x, y, c, s) => x === c && y === c,
@@ -505,6 +590,11 @@ const DONATORS = [
     const errorCache = new Map();
     const filterSet = (ov.filterActive && ov.savedFilters) ? new Set(ov.savedFilters) : null;
 
+    // HELPER: Get inverse color
+    const getInverseColor = (r, g, b) => {
+        return [255 - r, 255 - g, 255 - b];
+    };
+
     for (let i = 0; i < data.length; i += 4) {
       const r_ov = data[i], g_ov = data[i+1], b_ov = data[i+2], a = data[i+3];
       if (a < 250) {
@@ -537,17 +627,33 @@ const DONATORS = [
               const r_orig = originalTileImageData.data[originalIndex];
               const g_orig = originalTileImageData.data[originalIndex+1];
               const b_orig = originalTileImageData.data[originalIndex+2];
-              isMatch = isColorSimilar(r_ov, g_ov, b_ov, r_orig, g_orig, b_orig);
+              const a_orig = originalTileImageData.data[originalIndex+3];
+              
+              // ✅ FIX: Check if original pixel is painted (alpha > 200)
+              // If unpainted (transparent), it's always an error regardless of color
+              const isPainted = a_orig > 200;
+              isMatch = isPainted && isColorSimilar(r_ov, g_ov, b_ov, r_orig, g_orig, b_orig);
               errorCache.set(blockKey, isMatch);
           }
           if (isMatch) {
               data[i+3] = 0;
               continue;
           } else {
+              // ✅ FIX: Use error color based on config (inverse or custom)
+              const [err_r, err_g, err_b] = getErrorColor(r_ov, g_ov, b_ov);
+
               if (shouldDrawPattern) {
-                  data[i] = r_ov; data[i+1] = g_ov; data[i+2] = b_ov; data[i+3] = 255;
+                  // Show original color on pattern
+                  data[i] = r_ov;
+                  data[i+1] = g_ov;
+                  data[i+2] = b_ov;
+                  data[i+3] = 255;
               } else {
-                  data[i] = 237; data[i+1] = 28; data[i+2] = 36; data[i+3] = 255;
+                  // ✅ FIX: Show error color on background
+                  data[i] = err_r;
+                  data[i+1] = err_g;
+                  data[i+2] = err_b;
+                  data[i+3] = 255;
               }
           }
       } else {
@@ -566,7 +672,6 @@ const DONATORS = [
     overlayCache.set(cacheKey, result);
     return result;
   }
-
   async function mergeOverlaysBehind(originalBlob, overlayDatas) {
     if (!overlayDatas || overlayDatas.length === 0) return originalBlob;
     const originalImage = await blobToImage(originalBlob);
@@ -897,7 +1002,9 @@ function showToast(message, duration = 3000) {
     caShowColorNames: true,
     caShowProgress: true,
     caShowRemainingOnly: false,
-    lastKnownColors: []
+    lastKnownColors: [],
+    errorColorMode: 'inverse', // 'inverse' or 'custom'
+    errorCustomColor: '#ff0000' // Default red color for custom error color
   };
   const CONFIG_KEYS = Object.keys(config);
 
@@ -1109,7 +1216,7 @@ function injectStyles() {
         transform: scale(0.95); opacity: 0; pointer-events: none; user-select: none;
       }
       #op-color-analysis-panel.filters-open {
-          max-height: 95vh;
+          max-height: 80vh;
       }
       #op-color-analysis-panel.show { transform: scale(1); opacity: 1; pointer-events: auto; }
       .op-ca-header {
@@ -1123,12 +1230,31 @@ function injectStyles() {
       #op-color-analysis-panel.collapsed .op-ca-header { border-bottom-color: transparent; }
       .op-ca-settings-wrap { position: relative; display: flex; gap: 4px; }
       .op-ca-settings-btn {
-        background: transparent; border: none; font-size: 16px; cursor: pointer;
-        padding: 5px; border-radius: 8px; line-height: 1; opacity: 0.7;
-        transition: all 0.2s;
+      background: transparent; border: none; font-size: 16px; cursor: pointer;
+      padding: 5px; border-radius: 8px; line-height: 1; opacity: 0.7;
+      transition: all 0.2s;
       }
-      .op-ca-settings-btn:hover { opacity: 1; background: var(--op-btn-hover); }
-      .op-ca-settings-btn.active { background: var(--op-accent) !important; color: white !important; opacity: 1; }
+      .op-ca-settings-btn:hover {
+          opacity: 1;
+          background: var(--op-btn-hover);
+      }
+      .op-ca-settings-btn:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+      }
+      .op-ca-settings-btn.active {
+          background: var(--op-accent) !important;
+          color: white !important;
+          opacity: 1;
+      }
+      /* Refresh button spin animation */
+      @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+      }
+      .op-ca-refresh-spinning {
+          animation: spin 1s linear infinite;
+      }
       .op-ca-settings-popup {
         position: absolute; top: calc(100% + 8px); right: 0; transform-origin: top right;
         width: 200px; background: var(--op-bg); border: 1px solid var(--op-border);
@@ -1471,8 +1597,20 @@ panel.innerHTML = `
             <span id="op-panel-alpha-value" class="op-muted"></span>
         </div>
         <input type="range" id="op-panel-alpha-slider" min="0.2" max="1" step="0.05">
+        <div class="op-settings-row">
+            <span>Error Color Mode</span>
+            <select id="op-error-color-mode" class="op-button" style="padding: 4px 8px;">
+                <option value="inverse">Inverse Color</option>
+                <option value="custom">Custom Color</option>
+            </select>
+        </div>
+        <div class="op-settings-row" id="op-error-custom-color-row" style="display: none;">
+            <span>Custom Error Color</span>
+            <input type="color" id="op-error-custom-color" value="#ff0000" style="width: 60px; height: 30px; border: 1px solid var(--op-border); border-radius: 4px; cursor: pointer;">
+        </div>
         <div class="op-donation-section">
             <p>This project is free, but I would appreciate a donation to support development ❤️</p>
+            <p style="margin-top: 8px; font-size: 12px;">To donate, please contact me on my <a href="https://github.com/Jay-pn34" target="_blank" style="color: var(--op-accent); text-decoration: underline;">GitHub page</a> for additional details.</p>
         </div>
         <button class="op-button op-show-donators">❤️ View Donators</button>
         <div class="op-donators-list-wrap"></div>
@@ -1490,6 +1628,7 @@ panel.innerHTML = `
     <div class="op-ca-header" id="op-ca-header-drag">
         <span>Color Progress</span>
         <div class="op-ca-settings-wrap">
+            <button class="op-ca-settings-btn" id="op-ca-refresh-btn" title="Refresh Progress">🔄</button>
             <button class="op-ca-settings-btn" id="op-ca-settings-btn" title="Progress Settings">⚙️</button>
             <button class="op-ca-settings-btn" id="op-ca-toggle-collapse" title="Collapse/Expand" style="margin-left: 5px;">▾</button>
         </div>
@@ -1500,7 +1639,10 @@ panel.innerHTML = `
     <div class="op-ca-footer" id="op-ca-footer">
         <div class="op-ca-total-progress">
             <span>Total Progress:</span>
-            <span id="op-ca-total-percentage">0%</span>
+            <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px;">
+                <span id="op-ca-total-percentage">0%</span>
+                <span id="op-ca-total-numbers" class="op-muted" style="font-size: 11px;">0 / 0</span>
+            </div>
         </div>
         <div class="op-ca-main-actions">
             <button class="op-button" id="op-ca-apply-filter">Apply</button>
@@ -1513,6 +1655,7 @@ panel.innerHTML = `
             <button class="op-button" id="op-ca-mark-all">Mark All</button>
             <button class="op-button" id="op-ca-mark-none">Unmark All</button>
             <button class="op-button" id="op-ca-show-all">Restore</button>
+            <button class="op-button" id="op-ca-show-locations" style="grid-column: 1 / -1;">📍 Show Remaining Locations</button>
         </div>
         <div class="op-ca-controls">
             <div class="op-ca-control-row">
@@ -1552,6 +1695,7 @@ panel.innerHTML = `
         <input type="range" id="op-ca-alpha-slider" min="0.2" max="1" step="0.05">
         <div class="op-donation-section">
             <p>This project is free, but I would appreciate a donation to support the project ❤️</p>
+            <p style="margin-top: 8px; font-size: 12px;">To donate, please contact me on my <a href="https://github.com/Jay-pn34" target="_blank" style="color: var(--op-accent); text-decoration: underline;">GitHub page</a> for additional details.</p>
         </div>
         <button class="op-button op-show-donators">❤️ View Acknowledgements</button>
         <div class="op-donators-list-wrap"></div>
@@ -2164,6 +2308,51 @@ applyTheme();
     const mainSettingsBtn = $('op-main-settings-btn');
     const mainSettingsModal = $('op-main-settings-modal');
     const mainBackdrop = $('op-main-settings-backdrop');
+    // Error color settings
+    const errorColorModeSelect = $('op-error-color-mode');
+    const errorCustomColorInput = $('op-error-custom-color-row');
+    const errorCustomColorPicker = $('op-error-custom-color');
+    
+    if (errorColorModeSelect) {
+        errorColorModeSelect.value = config.errorColorMode || 'inverse';
+        errorColorModeSelect.addEventListener('change', async (e) => {
+            config.errorColorMode = e.target.value;
+            await saveConfig(['errorColorMode']);
+            if (errorCustomColorInput) {
+                errorCustomColorInput.style.display = config.errorColorMode === 'custom' ? 'flex' : 'none';
+            }
+            clearOverlayCache();
+            ensureHook();
+            showToast('Error color mode updated. Move the map to see changes.');
+        });
+        
+        // Show/hide custom color picker based on mode
+        if (errorCustomColorInput) {
+            errorCustomColorInput.style.display = config.errorColorMode === 'custom' ? 'flex' : 'none';
+        }
+    }
+    
+    if (errorCustomColorPicker) {
+        // Convert hex to rgb for storage
+        const hexToRgb = (hex) => {
+            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? {
+                r: parseInt(result[1], 16),
+                g: parseInt(result[2], 16),
+                b: parseInt(result[3], 16)
+            } : null;
+        };
+        
+        errorCustomColorPicker.value = config.errorCustomColor || '#ff0000';
+        errorCustomColorPicker.addEventListener('change', async (e) => {
+            config.errorCustomColor = e.target.value;
+            await saveConfig(['errorCustomColor']);
+            clearOverlayCache();
+            ensureHook();
+            showToast('Error color updated. Move the map to see changes.');
+        });
+    }
+
     const panelAlphaSlider = $('op-panel-alpha-slider');
     const panelAlphaValue = $('op-panel-alpha-value');
 
@@ -2176,6 +2365,18 @@ applyTheme();
     const toggleMainSettingsModal = (show) => {
         mainSettingsModal.classList.toggle('show', show);
         mainBackdrop.classList.toggle('show', show);
+        if (show) {
+            // Update error color settings when modal opens
+            if (errorColorModeSelect) {
+                errorColorModeSelect.value = config.errorColorMode || 'inverse';
+            }
+            if (errorCustomColorPicker) {
+                errorCustomColorPicker.value = config.errorCustomColor || '#ff0000';
+            }
+            if (errorCustomColorInput) {
+                errorCustomColorInput.style.display = (config.errorColorMode === 'custom') ? 'flex' : 'none';
+            }
+        }
     };
 
     mainSettingsBtn.addEventListener('click', (e) => {
@@ -2296,6 +2497,35 @@ applyTheme();
     $('op-ca-show-progress-toggle').addEventListener('click', createViewToggleHandler('caShowProgress', true));
     $('op-ca-show-remaining-toggle').addEventListener('click', createViewToggleHandler('caShowRemainingOnly', true));
 
+    // Manual refresh button
+    document.getElementById('op-ca-refresh-btn')?.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const btn = e.currentTarget; // Changed from e.target to e.currentTarget
+        const originalText = btn.textContent;
+        
+        // Add spinning animation
+        btn.classList.add('op-ca-refresh-spinning');
+        btn.textContent = '⏳';
+        btn.disabled = true;
+
+        try {
+            await updateOverlayProgress();
+            showToast('✅ Progress refreshed!');
+        } catch (error) {
+            showToast('❌ Refresh failed');
+            console.error('Refresh error:', error);
+        } finally {
+            // Remove animation class after animation completes
+            btn.classList.remove('op-ca-refresh-spinning');
+            btn.textContent = originalText;
+            btn.disabled = false;
+        }
+    });
+
+    // Show locations button
+    document.getElementById('op-ca-show-locations')?.addEventListener('click', async () => {
+        await showRemainingPixelLocations();
+    });
 }
 
     function getAvailableColors() {
@@ -2326,7 +2556,7 @@ applyTheme();
     return lastKnownAvailableColors;
 }
 
-async function updateOverlayProgress() {
+  async function updateOverlayProgress() {
     const panelContent = document.getElementById('op-ca-list-content');
     const totalPercentageEl = document.getElementById('op-ca-total-percentage');
     const ov = getActiveOverlay();
@@ -2434,7 +2664,11 @@ async function updateOverlayProgress() {
             panelContent.appendChild(item);
         }
 
-        totalPercentageEl.textContent = `${totalNeeded > 0 ? ((totalPlaced / totalNeeded) * 100).toFixed(3) : '0.000'}%`;
+        totalPercentageEl.textContent = `${totalNeeded > 0 ? ((totalPlaced / totalNeeded) * 100).toFixed(2) : '0.00'}%`;
+        const totalNumbersEl = document.getElementById('op-ca-total-numbers');
+        if (totalNumbersEl) {
+            totalNumbersEl.textContent = `${totalPlaced.toLocaleString()} / ${totalNeeded.toLocaleString()}`;
+        }
 
         const applyAndRefresh = async (isFilter, colors, message) => {
             ov.filterActive = isFilter;
@@ -2464,6 +2698,342 @@ async function updateOverlayProgress() {
         panelContent.innerHTML = `<span class="op-muted op-danger-text" style="text-align: center; padding: 20px 0;">Error processing image.</span>`;
         totalPercentageEl.textContent = 'Error';
     }
+}
+  async function showRemainingPixelLocations() {
+    const ov = getActiveOverlay();
+    if (!ov || !ov.imageBase64 || !ov.pixelUrl) {
+        showToast('Select an overlay with image and anchor first.');
+        return;
+    }
+
+    try {
+        const img = await loadImage(ov.imageBase64);
+        const canvas = createHTMLCanvas(img.width, img.height);
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        ctx.drawImage(img, 0, 0);
+        const imageData = ctx.getImageData(0, 0, img.width, img.height);
+        const data = imageData.data;
+
+        const base = extractPixelCoords(ov.pixelUrl);
+        const overlayBaseX = base.chunk1 * TILE_SIZE + base.posX + ov.offsetX;
+        const overlayBaseY = base.chunk2 * TILE_SIZE + base.posY + ov.offsetY;
+
+        console.log('Image dimensions:', { width: img.width, height: img.height });
+        console.log('Overlay base coordinates:', { overlayBaseX, overlayBaseY, offsetX: ov.offsetX, offsetY: ov.offsetY });
+        console.log('Anchor base:', base);
+
+        const remainingPixels = [];
+        let tilesNotInCache = new Set();
+        let pixelsChecked = 0;
+        let pixelsPlaced = 0;
+        let pixelsSkippedTransparent = 0;
+        let pixelsSkippedOutOfBounds = 0;
+        let totalPixelsInImage = img.width * img.height;
+
+        // Check each pixel
+        for (let y = 0; y < img.height; y++) {
+            for (let x = 0; x < img.width; x++) {
+                const i = (y * img.width + x) * 4;
+                
+                // Count all pixels, even transparent ones
+                if (data[i + 3] < 200) {
+                    pixelsSkippedTransparent++;
+                    continue; // Skip transparent
+                }
+
+                const r_ov = data[i], g_ov = data[i + 1], b_ov = data[i + 2];
+                const absX = overlayBaseX + x;
+                const absY = overlayBaseY + y;
+
+                // Only skip negative coordinates (invalid)
+                if (absX < 0 || absY < 0) {
+                    pixelsSkippedOutOfBounds++;
+                    continue; // Skip pixels with negative coordinates
+                }
+
+                const chunk1 = Math.floor(absX / TILE_SIZE);
+                const chunk2 = Math.floor(absY / TILE_SIZE);
+                const tileKey = `${chunk1}/${chunk2}`;
+
+                let isPlaced = false;
+                pixelsChecked++; // Count non-transparent pixels with valid coordinates
+
+                if (tileDataCache.has(tileKey)) {
+                    const tileImageData = tileDataCache.get(tileKey);
+                    const tileX = absX % TILE_SIZE;
+                    const tileY = absY % TILE_SIZE;
+                    const tileIdx = (tileY * TILE_SIZE + tileX) * 4;
+
+                    // Validate tile index
+                    if (tileIdx >= 0 && tileIdx < tileImageData.data.length - 3) {
+                        const r_orig = tileImageData.data[tileIdx];
+                        const g_orig = tileImageData.data[tileIdx + 1];
+                        const b_orig = tileImageData.data[tileIdx + 2];
+                        const a_orig = tileImageData.data[tileIdx + 3];
+
+                        if (a_orig > 200 && r_ov === r_orig && g_ov === g_orig && b_ov === b_orig) {
+                            isPlaced = true;
+                            pixelsPlaced++;
+                        }
+                    }
+                } else {
+                    // Track tiles not in cache - these pixels are assumed to be not placed
+                    tilesNotInCache.add(tileKey);
+                }
+
+                if (!isPlaced) {
+                    const colorKey = `${r_ov},${g_ov},${b_ov}`;
+                    const relX = x + ov.offsetX;
+                    const relY = y + ov.offsetY;
+
+                    remainingPixels.push({
+                        absX: absX,
+                        absY: absY,
+                        relX: relX,
+                        relY: relY,
+                        color: colorKey,
+                        colorName: WPLACE_NAMES[colorKey] || 'Unknown',
+                        chunk1: chunk1,
+                        chunk2: chunk2,
+                        inChunkX: absX % TILE_SIZE,
+                        inChunkY: absY % TILE_SIZE,
+                        link: generatePixelLink(absX, absY)
+                    });
+                }
+            }
+        }
+
+        // Debug logging
+        console.log('Pixel check summary:', {
+            totalPixelsInImage: totalPixelsInImage,
+            pixelsSkippedTransparent: pixelsSkippedTransparent,
+            pixelsSkippedOutOfBounds: pixelsSkippedOutOfBounds,
+            pixelsChecked: pixelsChecked,
+            pixelsPlaced: pixelsPlaced,
+            remainingPixels: remainingPixels.length,
+            tilesNotInCache: tilesNotInCache.size,
+            tilesNotInCacheList: Array.from(tilesNotInCache).slice(0, 10) // Show first 10
+        });
+
+        if (pixelsChecked === 0) {
+            console.error('ERROR: No pixels were checked! This might indicate:');
+            console.error('1. Image has no non-transparent pixels');
+            console.error('2. All pixels are outside canvas bounds (0-3999)');
+            console.error('3. Image dimensions are 0x0');
+            console.error('Image info:', { width: img.width, height: img.height, overlayBaseX, overlayBaseY });
+        }
+
+        if (tilesNotInCache.size > 0) {
+            console.warn(`Note: ${tilesNotInCache.size} tile(s) were not in cache. Pixels in those tiles are assumed to be not placed. You may need to view those tiles first for accurate detection.`);
+        }
+
+        const byColor = {};
+        remainingPixels.forEach(p => {
+            if (!byColor[p.color]) {
+                byColor[p.color] = { name: p.colorName, pixels: [] };
+            }
+            byColor[p.color].pixels.push(p);
+        });
+
+        // Only show "All pixels are complete!" if we actually have no remaining pixels
+        // BUT also check that we actually checked some pixels (pixelsChecked > 0)
+        // If pixelsChecked is 0, it means something went wrong with the detection
+        if (remainingPixels.length === 0 && Object.keys(byColor).length === 0) {
+            if (pixelsChecked === 0) {
+                console.error('No pixels were checked - cannot determine if pixels are complete!');
+                showToast('⚠️ Error: Could not check any pixels. Make sure the overlay image is valid and visible on the canvas.');
+                return;
+            }
+            // Only show completion message if we actually checked pixels and found none remaining
+            showToast('🎉 All pixels are complete!');
+            return;
+        }
+
+        // If we have remaining pixels but byColor is empty, something went wrong
+        if (remainingPixels.length > 0 && Object.keys(byColor).length === 0) {
+            console.error('Error: remainingPixels has items but byColor is empty', remainingPixels);
+            showToast('Error: Could not group remaining pixels by color.');
+            return;
+        }
+
+        showPixelLocationModal(byColor, remainingPixels.length, base);
+
+    } catch (error) {
+        console.error('Error finding remaining pixels:', error);
+        showToast('Error: Could not analyze remaining pixels.');
+    }
+}
+
+  function showPixelLocationModal(byColor, totalRemaining, anchorBase) {
+    const existing = document.getElementById('op-pixel-locations-modal');
+    if (existing) existing.remove();
+    const existingBackdrop = document.getElementById('op-pixel-locations-backdrop');
+    if (existingBackdrop) existingBackdrop.remove();
+
+    const backdrop = document.createElement('div');
+    backdrop.id = 'op-pixel-locations-backdrop';
+    backdrop.className = 'op-backdrop show';
+    document.body.appendChild(backdrop);
+
+    const modal = document.createElement('div');
+    modal.id = 'op-pixel-locations-modal';
+    modal.className = 'op-modal show';
+    modal.style.cssText = 'width: min(800px, 95vw); max-height: 85vh; left: 50%; top: 50%; transform: translate(-50%, -50%); display: flex; flex-direction: column;';
+
+    let contentHTML = `
+        <div style="padding: 12px; border-bottom: 1px solid var(--op-border); display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h3 style="margin: 0;">📍 Remaining Pixels (${totalRemaining})</h3>
+                <div class="op-muted" style="font-size: 11px; margin-top: 4px;">
+                    Anchor: Chunk ${anchorBase.chunk1}/${anchorBase.chunk2} at (${anchorBase.posX}, ${anchorBase.posY})
+                    | Canvas Range: 0-3999 in both X and Y
+                </div>
+            </div>
+            <button class="op-button" id="op-close-locations-modal">✕</button>
+        </div>
+        <div style="padding: 12px; overflow-y: auto; flex: 1;">
+    `;
+
+    const sortedColors = Object.entries(byColor).sort((a, b) => a[1].pixels.length - b[1].pixels.length);
+
+    // If no colors found but we have remaining pixels, show a message
+    if (sortedColors.length === 0 && totalRemaining > 0) {
+        contentHTML += `
+            <div style="text-align: center; padding: 40px 20px; color: var(--op-muted);">
+                <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>
+                <div style="font-size: 16px; margin-bottom: 8px;">Found ${totalRemaining} remaining pixel(s), but could not group them by color.</div>
+                <div style="font-size: 12px;">This might indicate an issue with pixel detection. Check the console for details.</div>
+            </div>
+        `;
+    } else if (sortedColors.length === 0) {
+        contentHTML += `
+            <div style="text-align: center; padding: 40px 20px; color: var(--op-muted);">
+                <div style="font-size: 48px; margin-bottom: 16px;">🎉</div>
+                <div style="font-size: 16px;">All pixels are complete!</div>
+            </div>
+        `;
+    }
+
+    sortedColors.forEach(([colorKey, data]) => {
+        const [r, g, b] = colorKey.split(',').map(Number);
+        const borderStyle = (r === 0 && g === 0 && b === 0)
+            ? 'border: 2px solid var(--op-border);'
+            : 'border: 1px solid var(--op-border);';
+
+        contentHTML += `
+            <div style="margin-bottom: 16px; background: var(--op-subtle); padding: 10px; border-radius: 8px;">
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                    <div style="width: 20px; height: 20px; background: rgb(${colorKey}); ${borderStyle} border-radius: 4px;"></div>
+                    <strong>${data.name}</strong>
+                    <span class="op-muted">(${data.pixels.length} remaining)</span>
+                </div>
+                <div style="max-height: 200px; overflow-y: auto; font-size: 11px; font-family: monospace; line-height: 2; background: var(--op-bg); padding: 8px; border-radius: 6px;">
+        `;
+
+        data.pixels.slice(0, 100).forEach((p, idx) => {
+            contentHTML += `
+                <a href="${p.link}" 
+                  class="op-pixel-location-link"
+                  style="display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-bottom: 1px solid var(--op-border); text-decoration: none; color: var(--op-text); cursor: pointer; transition: background 0.2s ease;" 
+                  onmouseover="this.style.background='var(--op-btn-hover)'" 
+                  onmouseout="this.style.background='transparent'">
+                    <span style="min-width: 25px; color: var(--op-muted);">#${idx + 1}</span>
+                    <span style="flex: 1;">📍 Canvas: (${p.absX}, ${p.absY})</span>
+                    <span style="color: var(--op-accent); font-size: 12px;">→</span>
+                </a>
+            `;
+        });
+
+        if (data.pixels.length > 100) {
+            contentHTML += `<div class="op-muted" style="padding: 6px 0; text-align: center;">... and ${data.pixels.length - 100} more pixels</div>`;
+        }
+
+        contentHTML += `</div></div>`;
+    });
+
+    contentHTML += `
+        </div>
+        <div style="padding: 12px; border-top: 1px solid var(--op-border); display: flex; gap: 8px; justify-content: space-between; align-items: center;">
+            <div class="op-muted" style="font-size: 11px;">
+                💡 Click "🔗 Go" to navigate directly to each pixel
+            </div>
+            <div style="display: flex; gap: 8px;">
+                <button class="op-button" id="op-copy-locations">📋 Copy All</button>
+                <button class="op-button" id="op-download-locations">💾 Download CSV</button>
+            </div>
+        </div>
+    `;
+
+    modal.innerHTML = contentHTML;
+    document.body.appendChild(modal);
+
+    // Add click handlers for pixel location links to ensure navigation works
+    modal.querySelectorAll('.op-pixel-location-link').forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const href = link.getAttribute('href');
+            if (href) {
+                // Force navigation to the URL
+                window.location.href = href;
+            }
+        });
+    });
+
+    const close = () => {
+        modal.classList.remove('show');
+        backdrop.classList.remove('show');
+        setTimeout(() => {
+            modal.remove();
+            backdrop.remove();
+        }, 200);
+    };
+
+    document.getElementById('op-close-locations-modal').addEventListener('click', close);
+    backdrop.addEventListener('click', close);
+
+    document.getElementById('op-copy-locations').addEventListener('click', () => {
+        let text = `Remaining Pixels (${totalRemaining} total)\n`;
+        text += `Anchor Position: Chunk ${anchorBase.chunk1}/${anchorBase.chunk2} at (${anchorBase.posX}, ${anchorBase.posY})\n`;
+        text += `Canvas Range: 0-3999 (X and Y)\n\n`;
+
+        sortedColors.forEach(([colorKey, data]) => {
+            text += `${data.name} - rgb(${colorKey}) (${data.pixels.length} pixels):\n`;
+            data.pixels.forEach((p, idx) => {
+                text += `  #${idx + 1} Canvas: (${p.absX}, ${p.absY}) | Link: ${p.link}\n`;
+            });
+            text += '\n';
+        });
+
+        copyText(text).then(() => showToast('✅ Copied to clipboard!')).catch(() => {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            showToast('✅ Copied to clipboard!');
+        });
+    });
+
+    document.getElementById('op-download-locations').addEventListener('click', () => {
+        let csv = 'Index,Color,Color Name,Canvas X,Canvas Y,Chunk X,Chunk Y,In-Chunk X,In-Chunk Y,Direct Link\n';
+        let globalIndex = 1;
+        sortedColors.forEach(([colorKey, data]) => {
+            data.pixels.forEach(p => {
+                csv += `${globalIndex},"rgb(${colorKey})","${data.name}",${p.absX},${p.absY},${p.chunk1},${p.chunk2},${p.inChunkX},${p.inChunkY},"${p.link}"\n`;
+                globalIndex++;
+            });
+        });
+
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `remaining_pixels_${Date.now()}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast('✅ CSV downloaded!');
+    });
 }
 
   function enableDrag(panel, headerSelector, xKey, yKey) {
