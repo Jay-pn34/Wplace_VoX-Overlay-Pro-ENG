@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Wplace Overlay Pro Modified By Jay-pn34 (original by SrCratier)
 // @namespace    http://tampermonkey.net/
-// @version      5.1.2
+// @version      5.1.3
 // @description  Overlays tiles on wplace.live. Can also resize, and color-match your overlay to wplace's palette. Make sure to comply with the site's Terms of Service, and rules! This script is not affiliated with Wplace.live in any way, use at your own risk. This script is not affiliated with TamperMonkey. The author of this userscript is not responsible for any damages, issues, loss of data, or punishment that may occur as a result of using this script. This script is provided "as is" under GPLv3.
 // @author       shinkonet (original code by SrCratier) (Modified by Jay-pn34)
 // @updateURL    https://raw.githubusercontent.com/Jay-pn34/Wplace_VoX-Overlay-Pro-ENG/main/WplacePro-VoX.user.js
@@ -382,11 +382,11 @@ const DONATORS = [
         b = parseInt(hex[2] + hex[2], 16);
       } else {
         // Handle #RRGGBB format
-        r = parseInt(hex.substr(0, 2), 16);
-        g = parseInt(hex.substr(2, 2), 16);
-        b = parseInt(hex.substr(4, 2), 16);
+        r = parseInt(hex.substring(0, 2), 16);
+        g = parseInt(hex.substring(2, 4), 16);
+        b = parseInt(hex.substring(4, 6), 16);
       }
-      return [r || 255, g || 0, b || 0]; // Default to red if parsing fails
+      return [r || 0, g || 0, b || 0]; // Default to black if parsing fails
     } else {
       // Default to inverse color
       return [255 - r_ov, 255 - g_ov, 255 - b_ov];
@@ -1004,7 +1004,14 @@ function showToast(message, duration = 3000) {
     caShowRemainingOnly: false,
     lastKnownColors: [],
     errorColorMode: 'inverse', // 'inverse' or 'custom'
-    errorCustomColor: '#ff0000' // Default red color for custom error color
+    errorCustomColor: '#000000', // Default Black color for custom error color
+    caGroupByStatus: true,          // Group colors by completion status
+    caShowSelectedGroup: true,      // Show selected colors in separate group
+    caSortWithinGroups: true,       // Sort colors within each group
+    caselectedExpanded: true,      // Selected group expanded by default
+    cainProgressExpanded: true,    // In Progress expanded by default
+    canotStartedExpanded: true,    // Not Started expanded by default
+    cacompletedExpanded: false,    // Completed collapsed by default
   };
   const CONFIG_KEYS = Object.keys(config);
 
@@ -1394,6 +1401,30 @@ function injectStyles() {
         font-weight: bold;
         color: var(--op-accent);
       }
+      .op-ca-category-header {
+          padding: 8px 10px;
+          background: var(--op-subtle);
+          color: white;
+          font-weight: 600;
+          font-size: 12px;
+          border-radius: 6px;
+          margin-top: 8px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          cursor: pointer;
+          transition: background 0.2s ease;
+      }
+      .op-ca-category-header:hover {
+          background: var(--op-btn-hover);
+      }
+      .op-ca-category-header:first-child {
+          margin-top: 0;
+      }
+      .op-ca-category-count {
+          opacity: 0.9;
+          font-size: 11px;
+      }
       @media (max-width: 480px) {
       #op-color-analysis-panel {
       width: 90vw;
@@ -1682,10 +1713,21 @@ panel.innerHTML = `
         <h3>Progress Settings</h3>
         <div class="op-ca-controls" style="display: flex; flex-direction: column; gap: 12px;">
             <div class="op-ca-control-row">
-                <label>Sort by quantity</label>
+                <label>Group by Status</label>
+                <div class="op-switch" id="op-ca-group-toggle"></div>
+            </div>
+            <div class="op-ca-control-row">
+                <label>Show Selected Group</label>
+                <div class="op-switch" id="op-ca-selected-group-toggle"></div>
+            </div>
+            <div class="op-ca-control-row">
+                <label>Sort Within Groups</label>
+                <div class="op-switch" id="op-ca-sort-groups-toggle"></div>
+            </div>
+            <div class="op-ca-control-row">
+                <label>Sort by Quantity</label>
                 <div class="op-switch" id="op-ca-sort-toggle"></div>
             </div>
-
         </div>
         <hr style="border-color: var(--op-border); margin: 12px 0;">
         <div class="op-settings-row">
@@ -2431,6 +2473,34 @@ applyTheme();
         saveConfig(['colorPanelAlpha']);
     });
 
+    const caGroupToggle = $('op-ca-group-toggle');
+    const caSelectedGroupToggle = $('op-ca-selected-group-toggle');
+    const caSortGroupsToggle = $('op-ca-sort-groups-toggle');
+
+    caGroupToggle.classList.toggle('active', config.caGroupByStatus);
+    caGroupToggle.addEventListener('click', async () => {
+        config.caGroupByStatus = !config.caGroupByStatus;
+        caGroupToggle.classList.toggle('active', config.caGroupByStatus);
+        await saveConfig(['caGroupByStatus']);
+        if (config.isColorPanelVisible) await updateOverlayProgress();
+    });
+
+    caSelectedGroupToggle.classList.toggle('active', config.caShowSelectedGroup);
+    caSelectedGroupToggle.addEventListener('click', async () => {
+        config.caShowSelectedGroup = !config.caShowSelectedGroup;
+        caSelectedGroupToggle.classList.toggle('active', config.caShowSelectedGroup);
+        await saveConfig(['caShowSelectedGroup']);
+        if (config.isColorPanelVisible) await updateOverlayProgress();
+    });
+
+    caSortGroupsToggle.classList.toggle('active', config.caSortWithinGroups);
+    caSortGroupsToggle.addEventListener('click', async () => {
+        config.caSortWithinGroups = !config.caSortWithinGroups;
+        caSortGroupsToggle.classList.toggle('active', config.caSortWithinGroups);
+        await saveConfig(['caSortWithinGroups']);
+        if (config.isColorPanelVisible) await updateOverlayProgress();
+    });
+
     caSortToggle.classList.toggle('active', config.caSortEnabled);
     caSortToggle.addEventListener('click', async () => {
         config.caSortEnabled = !config.caSortEnabled;
@@ -2557,148 +2627,270 @@ applyTheme();
 }
 
   async function updateOverlayProgress() {
-    const panelContent = document.getElementById('op-ca-list-content');
-    const totalPercentageEl = document.getElementById('op-ca-total-percentage');
-    const ov = getActiveOverlay();
+      const panelContent = document.getElementById('op-ca-list-content');
+      const totalPercentageEl = document.getElementById('op-ca-total-percentage');
+      const ov = getActiveOverlay();
 
-    document.getElementById('op-ca-sort-toggle').classList.toggle('active', !!config.caSortEnabled);
-    const mainActions = document.querySelector('.op-ca-main-actions');
-    if (mainActions) mainActions.style.display = 'none';
+      document.getElementById('op-ca-sort-toggle').classList.toggle('active', !!config.caSortEnabled);
+      const mainActions = document.querySelector('.op-ca-main-actions');
+      if (mainActions) mainActions.style.display = 'none';
 
-    if (!ov || !ov.imageBase64 || !ov.pixelUrl) {
-        panelContent.innerHTML = `<span class="op-muted" style="text-align: center; padding: 20px 0;">Select an overlay with image and fixed anchor.</span>`;
-        totalPercentageEl.textContent = 'N/A';
-        return;
-    }
+      if (!ov || !ov.imageBase64 || !ov.pixelUrl) {
+          panelContent.innerHTML = `<span class="op-muted" style="text-align: center; padding: 20px 0;">Select an overlay with image and fixed anchor.</span>`;
+          totalPercentageEl.textContent = 'N/A';
+          return;
+      }
 
-    if (mainActions) mainActions.style.display = 'flex';
-    panelContent.innerHTML = `<span class="op-muted" style="text-align: center; padding: 20px 0;">Analyzing...</span>`;
-    totalPercentageEl.textContent = '0%';
+      if (mainActions) mainActions.style.display = 'flex';
+      panelContent.innerHTML = `<span class="op-muted" style="text-align: center; padding: 20px 0;">Analyzing...</span>`;
+      totalPercentageEl.textContent = '0%';
 
-    try {
-        const availableColors = getAvailableColors();
-        const img = await loadImage(ov.imageBase64);
-        const canvas = createHTMLCanvas(img.width, img.height);
-        const ctx = canvas.getContext('2d', { willReadFrequently: true });
-        ctx.drawImage(img, 0, 0);
-        const imageData = ctx.getImageData(0, 0, img.width, img.height);
-        const data = imageData.data;
-        const colorData = new Map();
+      try {
+          const availableColors = getAvailableColors();
+          const img = await loadImage(ov.imageBase64);
+          const canvas = createHTMLCanvas(img.width, img.height);
+          const ctx = canvas.getContext('2d', { willReadFrequently: true });
+          ctx.drawImage(img, 0, 0);
+          const imageData = ctx.getImageData(0, 0, img.width, img.height);
+          const data = imageData.data;
+          const colorData = new Map();
 
-        for (let i = 0; i < data.length; i += 4) {
-            if (data[i + 3] > 200) {
-                const key = `${data[i]},${data[i+1]},${data[i+2]}`;
-                if (!colorData.has(key)) colorData.set(key, { needed: 0, placed: 0 });
-                colorData.get(key).needed++;
-            }
-        }
+          for (let i = 0; i < data.length; i += 4) {
+              if (data[i + 3] > 200) {
+                  const key = `${data[i]},${data[i+1]},${data[i+2]}`;
+                  if (!colorData.has(key)) colorData.set(key, { needed: 0, placed: 0 });
+                  colorData.get(key).needed++;
+              }
+          }
 
-        if (colorData.size === 0) {
-            panelContent.innerHTML = `<span class="op-muted" style="text-align: center; padding: 20px 0;">The image is empty.</span>`;
-            return;
-        }
+          if (colorData.size === 0) {
+              panelContent.innerHTML = `<span class="op-muted" style="text-align: center; padding: 20px 0;">The image is empty.</span>`;
+              return;
+          }
 
-        const base = extractPixelCoords(ov.pixelUrl);
-        const overlayBaseX = base.chunk1 * TILE_SIZE + base.posX + ov.offsetX;
-        const overlayBaseY = base.chunk2 * TILE_SIZE + base.posY + ov.offsetY;
+          const base = extractPixelCoords(ov.pixelUrl);
+          const overlayBaseX = base.chunk1 * TILE_SIZE + base.posX + ov.offsetX;
+          const overlayBaseY = base.chunk2 * TILE_SIZE + base.posY + ov.offsetY;
 
-        const tileKeys = new Set();
-        for (let y = 0; y < img.height; y++) for (let x = 0; x < img.width; x++) {
-            if (data[(y * img.width + x) * 4 + 3] < 200) continue;
-            const absX = overlayBaseX + x, absY = overlayBaseY + y;
-            tileKeys.add(`${Math.floor(absX / TILE_SIZE)}/${Math.floor(absY / TILE_SIZE)}`);
-        }
+          const tileKeys = new Set();
+          for (let y = 0; y < img.height; y++) for (let x = 0; x < img.width; x++) {
+              if (data[(y * img.width + x) * 4 + 3] < 200) continue;
+              const absX = overlayBaseX + x, absY = overlayBaseY + y;
+              tileKeys.add(`${Math.floor(absX / TILE_SIZE)}/${Math.floor(absY / TILE_SIZE)}`);
+          }
 
-        tileKeys.forEach(tileKey => {
-            if (tileDataCache.has(tileKey)) {
-                const tileImageData = tileDataCache.get(tileKey);
-                for (let y = 0; y < img.height; y++) for (let x = 0; x < img.width; x++) {
-                    const i = (y * img.width + x) * 4;
-                    if (data[i + 3] < 200) continue;
-                    const neededColorKey = `${data[i]},${data[i+1]},${data[i+2]}`;
-                    const absX = overlayBaseX + x, absY = overlayBaseY + y;
-                    const chunk1 = Math.floor(absX/TILE_SIZE), chunk2 = Math.floor(absY/TILE_SIZE);
-                    if (`${chunk1}/${chunk2}` !== tileKey) continue;
-                    const tileX = absX % TILE_SIZE, tileY = absY % TILE_SIZE;
-                    const tileIdx = (tileY * TILE_SIZE + tileX) * 4;
-                    if (tileImageData.data[tileIdx+3] > 200 && `${tileImageData.data[tileIdx]},${tileImageData.data[tileIdx+1]},${tileImageData.data[tileIdx+2]}` === neededColorKey) {
-                        colorData.get(neededColorKey).placed++;
-                    }
-                }
-            }
-        });
+          tileKeys.forEach(tileKey => {
+              if (tileDataCache.has(tileKey)) {
+                  const tileImageData = tileDataCache.get(tileKey);
+                  for (let y = 0; y < img.height; y++) for (let x = 0; x < img.width; x++) {
+                      const i = (y * img.width + x) * 4;
+                      if (data[i + 3] < 200) continue;
+                      const neededColorKey = `${data[i]},${data[i+1]},${data[i+2]}`;
+                      const absX = overlayBaseX + x, absY = overlayBaseY + y;
+                      const chunk1 = Math.floor(absX/TILE_SIZE), chunk2 = Math.floor(absY/TILE_SIZE);
+                      if (`${chunk1}/${chunk2}` !== tileKey) continue;
+                      const tileX = absX % TILE_SIZE, tileY = absY % TILE_SIZE;
+                      const tileIdx = (tileY * TILE_SIZE + tileX) * 4;
+                      if (tileImageData.data[tileIdx+3] > 200 && `${tileImageData.data[tileIdx]},${tileImageData.data[tileIdx+1]},${tileImageData.data[tileIdx+2]}` === neededColorKey) {
+                          colorData.get(neededColorKey).placed++;
+                      }
+                  }
+              }
+          });
 
-        let totalNeeded = 0, totalPlaced = 0;
-        let colorsArray = Array.from(colorData.entries()).map(([key, { needed, placed }]) => {
-            totalNeeded += needed; totalPlaced += placed;
-            return { key, name: WPLACE_NAMES[key] || 'Unknown', needed, placed, isAvailable: availableColors.has(key) };
-        });
+          let totalNeeded = 0, totalPlaced = 0;
+          let colorsArray = Array.from(colorData.entries()).map(([key, { needed, placed }]) => {
+              totalNeeded += needed; totalPlaced += placed;
+              const remaining = needed - placed;
+              return { 
+                  key, 
+                  name: WPLACE_NAMES[key] || 'Unknown', 
+                  needed, 
+                  placed,
+                  remaining,
+                  isAvailable: availableColors.has(key) 
+              };
+          });
 
-        colorsArray.sort((a, b) => {
-            if (config.caHighlightEnabled && a.isAvailable !== b.isAvailable) return a.isAvailable ? -1 : 1;
-            if (config.caSortEnabled) return b.needed - a.needed;
-            return 0;
-        });
+          const isFilterActiveForThisOverlay = !!ov.filterActive;
+          const savedFiltersSet = new Set(ov.savedFilters || []);
 
-        panelContent.innerHTML = '';
-        const isFilterActiveForThisOverlay = !!ov.filterActive;
-        const savedFiltersSet = new Set(ov.savedFilters || []);
+          // Categorize colors
+          const categories = {
+              selected: [],
+              notStarted: [],
+              inProgress: [],
+              completed: []
+          };
 
-        for (const color of colorsArray) {
-            const item = document.createElement('div');
-            item.className = 'op-ca-item';
-            if (config.caHighlightEnabled && color.isAvailable) item.classList.add('available');
+          colorsArray.forEach(color => {
+              const isSelected = isFilterActiveForThisOverlay && savedFiltersSet.has(color.key);
+              
+              if (config.caShowSelectedGroup && isSelected) {
+                  categories.selected.push({ ...color, isSelected: true });
+              } else if (color.placed === 0) {
+                  categories.notStarted.push(color);
+              } else if (color.remaining === 0) {
+                  categories.completed.push(color);
+              } else {
+                  categories.inProgress.push(color);
+              }
+          });
 
-            const isChecked = isFilterActiveForThisOverlay ? savedFiltersSet.has(color.key) : true;
-            const remaining = color.needed - color.placed;
-            const progressText = config.caShowRemainingOnly ? `${remaining}` : `${color.placed} / ${color.needed}`;
+          // Sort function for colors within categories
+          const sortColors = (a, b) => {
+              if (config.caSortWithinGroups) {
+                  // Primary: Sort by remaining (ascending)
+                  if (a.remaining !== b.remaining) return a.remaining - b.remaining;
+                  // Secondary: Sort by total needed (descending)
+                  return b.needed - a.needed;
+              }
+              return 0;
+          };
 
-            item.innerHTML = `
-                <input type="checkbox" class="op-ca-filter-check" data-color-key="${color.key}" ${isChecked ? 'checked' : ''} style="margin-left: -2px;">
-                <div class="op-ca-swatch" style="background-color: rgb(${color.key});"></div>
-                <span class="op-ca-name">${color.name}</span>
-                <span class="op-ca-count">${progressText}</span>
-            `;
+          // Apply sorting within each category
+          if (config.caSortWithinGroups) {
+              categories.selected.sort(sortColors);
+              categories.inProgress.sort(sortColors);
+              categories.notStarted.sort((a, b) => b.needed - a.needed); // Sort by total pixels
+              categories.completed.sort((a, b) => b.needed - a.needed);
+          }
 
-            if (remaining === 0 && color.needed > 0) item.querySelector('.op-ca-count')?.classList.add('completed');
-            panelContent.appendChild(item);
-        }
+          // Build the UI
+          panelContent.innerHTML = '';
 
-        totalPercentageEl.textContent = `${totalNeeded > 0 ? ((totalPlaced / totalNeeded) * 100).toFixed(2) : '0.00'}%`;
-        const totalNumbersEl = document.getElementById('op-ca-total-numbers');
-        if (totalNumbersEl) {
-            totalNumbersEl.textContent = `${totalPlaced.toLocaleString()} / ${totalNeeded.toLocaleString()}`;
-        }
+          const renderCategory = (title, colors, categoryKey) => {
+              if (colors.length === 0) return;
 
-        const applyAndRefresh = async (isFilter, colors, message) => {
-            ov.filterActive = isFilter;
-            ov.savedFilters = colors;
-            await saveConfig(['overlays']);
-            clearOverlayCache();
-            showToast(message + ' Move the map to see changes.');
-        };
+              const isExpanded = config[`ca${categoryKey}Expanded`] !== false; // Default to expanded except for completed
 
-        document.getElementById('op-ca-apply-filter').onclick = () => {
-            const selected = Array.from(panelContent.querySelectorAll('.op-ca-filter-check:checked')).map(cb => cb.dataset.colorKey);
-            applyAndRefresh(true, selected, `Filter applied. Showing ${selected.length} colors.`);
-        };
-        document.getElementById('op-ca-show-all').onclick = () => {
-            panelContent.querySelectorAll('.op-ca-filter-check').forEach(cb => cb.checked = true);
-            applyAndRefresh(false, [], 'Filter removed. Showing all colors.');
-        };
-        document.getElementById('op-ca-mark-available').onclick = () => {
-            const availableSet = new Set(colorsArray.filter(c => c.isAvailable).map(c => c.key));
-            panelContent.querySelectorAll('.op-ca-filter-check').forEach(cb => cb.checked = availableSet.has(cb.dataset.colorKey));
-        };
-        document.getElementById('op-ca-mark-all').onclick = () => panelContent.querySelectorAll('.op-ca-filter-check').forEach(cb => cb.checked = true);
-        document.getElementById('op-ca-mark-none').onclick = () => panelContent.querySelectorAll('.op-ca-filter-check').forEach(cb => cb.checked = false);
+              const header = document.createElement('div');
+              header.className = 'op-ca-category-header';
+              header.style.cursor = 'pointer';
+              header.innerHTML = `
+                  <span>${isExpanded ? '▾' : '▸'} ${title}</span>
+                  <span class="op-ca-category-count">${colors.length} color${colors.length !== 1 ? 's' : ''}</span>
+              `;
+              
+              header.addEventListener('click', async () => {
+                  config[`ca${categoryKey}Expanded`] = !config[`ca${categoryKey}Expanded`];
+                  await saveConfig([`ca${categoryKey}Expanded`]);
+                  
+                  // Just toggle the UI without re-analyzing
+                  const arrow = header.querySelector('span:first-child');
+                  const isNowExpanded = config[`ca${categoryKey}Expanded`];
+                  arrow.textContent = `${isNowExpanded ? '▾' : '▸'} ${title}`;
+                  
+                  // Toggle visibility of items after this header
+                  let nextElement = header.nextElementSibling;
+                  while (nextElement && !nextElement.classList.contains('op-ca-category-header')) {
+                      nextElement.style.display = isNowExpanded ? 'grid' : 'none';
+                      nextElement = nextElement.nextElementSibling;
+                  }
+              });
+              
+              panelContent.appendChild(header);
 
-    } catch (error) {
-        console.error("Error updating overlay progress:", error);
-        panelContent.innerHTML = `<span class="op-muted op-danger-text" style="text-align: center; padding: 20px 0;">Error processing image.</span>`;
-        totalPercentageEl.textContent = 'Error';
-    }
-}
+              // ✅ ALWAYS render items - don't return early!
+              colors.forEach(color => {
+                  const item = document.createElement('div');
+                  item.className = 'op-ca-item';
+                  if (config.caHighlightEnabled && color.isAvailable) item.classList.add('available');
+
+                  const isChecked = isFilterActiveForThisOverlay ? savedFiltersSet.has(color.key) : true;
+                  const progressText = config.caShowRemainingOnly ? `${color.remaining}` : `${color.placed} / ${color.needed}`;
+
+                  item.innerHTML = `
+                      <input type="checkbox" class="op-ca-filter-check" data-color-key="${color.key}" ${isChecked ? 'checked' : ''} style="margin-left: -2px;">
+                      <div class="op-ca-swatch" style="background-color: rgb(${color.key});"></div>
+                      <span class="op-ca-name">${color.name}</span>
+                      <span class="op-ca-count ${color.remaining === 0 ? 'completed' : ''}">${progressText}</span>
+                  `;
+
+                  // ✅ Hide item if category is collapsed (but still create it!)
+                  if (!isExpanded) {
+                      item.style.display = 'none';
+                  }
+
+                  panelContent.appendChild(item);
+              });
+          };
+
+          if (config.caGroupByStatus) {
+              // Render in category order
+              if (config.caShowSelectedGroup) {
+                  renderCategory('✓ Selected', categories.selected, 'selected');
+              }
+              renderCategory('🔨 In Progress', categories.inProgress, 'inProgress');
+              renderCategory('⭕ Not Started', categories.notStarted, 'notStarted');
+              renderCategory('✅ Completed', categories.completed, 'completed');
+          } else {
+              // Old behavior: flat list with optional sorting
+              if (config.caHighlightEnabled) {
+                  colorsArray.sort((a, b) => {
+                      if (a.isAvailable !== b.isAvailable) return a.isAvailable ? -1 : 1;
+                      if (config.caSortEnabled) return b.needed - a.needed;
+                      return 0;
+                  });
+              } else if (config.caSortEnabled) {
+                  colorsArray.sort((a, b) => b.needed - a.needed);
+              }
+
+              colorsArray.forEach(color => {
+                  const item = document.createElement('div');
+                  item.className = 'op-ca-item';
+                  if (config.caHighlightEnabled && color.isAvailable) item.classList.add('available');
+
+                  const isChecked = isFilterActiveForThisOverlay ? savedFiltersSet.has(color.key) : true;
+                  const progressText = config.caShowRemainingOnly ? `${color.remaining}` : `${color.placed} / ${color.needed}`;
+
+                  item.innerHTML = `
+                      <input type="checkbox" class="op-ca-filter-check" data-color-key="${color.key}" ${isChecked ? 'checked' : ''} style="margin-left: -2px;">
+                      <div class="op-ca-swatch" style="background-color: rgb(${color.key});"></div>
+                      <span class="op-ca-name">${color.name}</span>
+                      <span class="op-ca-count ${color.remaining === 0 ? 'completed' : ''}">${progressText}</span>
+                  `;
+
+                  panelContent.appendChild(item);
+              });
+          }
+
+          totalPercentageEl.textContent = `${totalNeeded > 0 ? ((totalPlaced / totalNeeded) * 100).toFixed(2) : '0.00'}%`;
+          const totalNumbersEl = document.getElementById('op-ca-total-numbers');
+          if (totalNumbersEl) {
+              totalNumbersEl.textContent = `${totalPlaced.toLocaleString()} / ${totalNeeded.toLocaleString()}`;
+          }
+
+          // Apply filter handlers (same as before)
+          const applyAndRefresh = async (isFilter, colors, message) => {
+              ov.filterActive = isFilter;
+              ov.savedFilters = colors;
+              await saveConfig(['overlays']);
+              clearOverlayCache();
+              showToast(message + ' Move the map to see changes.');
+          };
+
+          document.getElementById('op-ca-apply-filter').onclick = () => {
+              const selected = Array.from(panelContent.querySelectorAll('.op-ca-filter-check:checked')).map(cb => cb.dataset.colorKey);
+              applyAndRefresh(true, selected, `Filter applied. Showing ${selected.length} colors.`);
+          };
+          document.getElementById('op-ca-show-all').onclick = () => {
+              panelContent.querySelectorAll('.op-ca-filter-check').forEach(cb => cb.checked = true);
+              applyAndRefresh(false, [], 'Filter removed. Showing all colors.');
+          };
+          document.getElementById('op-ca-mark-available').onclick = () => {
+              const availableSet = new Set(colorsArray.filter(c => c.isAvailable).map(c => c.key));
+              panelContent.querySelectorAll('.op-ca-filter-check').forEach(cb => cb.checked = availableSet.has(cb.dataset.colorKey));
+          };
+          document.getElementById('op-ca-mark-all').onclick = () => panelContent.querySelectorAll('.op-ca-filter-check').forEach(cb => cb.checked = true);
+          document.getElementById('op-ca-mark-none').onclick = () => panelContent.querySelectorAll('.op-ca-filter-check').forEach(cb => cb.checked = false);
+
+      } catch (error) {
+          console.error("Error updating overlay progress:", error);
+          panelContent.innerHTML = `<span class="op-muted op-danger-text" style="text-align: center; padding: 20px 0;">Error processing image.</span>`;
+          totalPercentageEl.textContent = 'Error';
+      }
+  }
   async function showRemainingPixelLocations() {
     const ov = getActiveOverlay();
     if (!ov || !ov.imageBase64 || !ov.pixelUrl) {

@@ -2,7 +2,7 @@
 
 **Based on shinkonet’s code, adapted and improved for Wplace.**
 
-Welcome to **VoX - Overlay Pro v5.1.2 (English Version)**!
+Welcome to **VoX - Overlay Pro v5.1.3 (English Version)**!
 
 This guide will help you master all the tools that the script makes available. The engine has been updated for better performance and ease of use.
 
@@ -30,7 +30,7 @@ To use the script, you need a browser extension called **Tampermonkey**.
 2. **Install the Script:**
    The script updates automatically.
    
-   [**⬇️ Click here to install the English version (v5.1.2)**](https://raw.githubusercontent.com/Jay-pn34/Wplace_VoX-Overlay-Pro-ENG/main/WplacePro-VoX.user.js)
+   [**⬇️ Click here to install the English version (v5.1.3)**](https://raw.githubusercontent.com/Jay-pn34/Wplace_VoX-Overlay-Pro-ENG/main/WplacePro-VoX.user.js)
 
    Tampermonkey will prompt you to confirm. Click "Install".
 
@@ -115,7 +115,7 @@ Select the **Mode** that best fits your design:
 
 ---
 
-## 5. New Features (v5.1.2)
+## 5. New Features (v5.1.3)
 
 ### Error Mode Improvements
 
@@ -127,6 +127,7 @@ Select the **Mode** that best fits your design:
 
 - **Refresh Remaining Pixel Counts:** New button in the Overlay Progress panel to manually refresh and update the count of remaining pixels for each color.
 - **Remaining Pixel Locations:** New feature that shows a detailed list of all remaining pixels with:
+- **Group colors by their progress status:** Each color will be grouped based on their status selected, completed, Not started, In Progress.
   - Exact canvas coordinates for each pixel
   - Color grouping for easy organization
   - Direct navigation links to jump to each pixel location
